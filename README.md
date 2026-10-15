@@ -27,6 +27,36 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
   Apple ID
 - Expo Go does **not** work: Lumi uses custom native modules, so it needs a development build
 
+## First time Mac setup
+
+Do this once (about 1 to 2 hours, mostly downloads). Skip the Android part if you only test Android
+with the APK link below.
+
+1. **macOS**: System Settings > General > Software Update. Install the latest update first, because
+   the newest Xcode needs a recent macOS.
+2. **Xcode**: App Store > Updates (or search Xcode) > Update. Open Xcode once, accept the licence
+   and install the iOS platform when asked. Then in Terminal:
+   ```sh
+   sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+   xcodebuild -runFirstLaunch
+   ```
+3. **Homebrew** (skip if `brew --version` works): follow https://brew.sh, then:
+   ```sh
+   brew install node@22 cocoapods watchman
+   brew install --cask zulu@17
+   ```
+4. **Android Studio**: Android Studio > Check for Updates, install all. Then Settings > Languages &
+   Frameworks > Android SDK: tick **Android 16 (API 36)** under SDK Platforms, and **Android SDK
+   Build-Tools**, **Android SDK Platform-Tools** and **NDK (Side by side)** under SDK Tools. Apply.
+5. **Shell settings**: add these lines to `~/.zshrc`, then open a new Terminal window:
+   ```sh
+   export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
+   ```
+6. **Check**: `node -v` (22.x), `pod --version`, `java -version` (17), `adb version` all print a
+   version.
+
 ## Setup
 
 ```sh
@@ -62,14 +92,19 @@ through TestFlight / EAS, which needs a paid Apple Developer account ($99 per ye
 2. `npx expo run:android --device` builds, installs and starts the development build.
 3. Later runs only need `npm start` while the app is installed (rebuild after native changes).
 
-### iPhone with a free Apple ID
+### iPhone or iPad with a free Apple ID
 
 1. Xcode > Settings > Accounts: add your Apple ID.
-2. iPhone: Settings > Privacy & Security > Developer Mode on (appears after first install attempt).
-3. `npx expo run:ios --device`, pick your iPhone. If signing fails, open `ios/Lumi.xcworkspace`,
-   select the Lumi target > Signing & Capabilities > Team: your personal team.
-4. iPhone: Settings > General > VPN & Device Management > trust your developer certificate.
-5. Free Apple ID builds expire after 7 days; run the command again to reinstall.
+2. Connect the iPhone / iPad by cable, unlock it and tap Trust.
+3. iPhone: Settings > Privacy & Security > Developer Mode on (appears after first install attempt,
+   the phone restarts).
+4. In the `lumi` folder: `npx expo run:ios --device`, pick your iPhone. The first build takes 10 to
+   20 minutes. If signing fails, open `ios/Lumi.xcworkspace` in Xcode, select the Lumi target >
+   Signing & Capabilities > Team: your personal team, then run the command again.
+5. iPhone: Settings > General > VPN & Device Management > trust your developer certificate.
+6. Free Apple ID builds expire after 7 days; run the command again to reinstall.
+7. Lumi now opens and connects to your Mac for JavaScript. After the first build, `npm start` is
+   enough until native code changes (each phase note says when a rebuild is needed).
 
 ### EAS builds (cloud, no Mac needed for Android)
 
