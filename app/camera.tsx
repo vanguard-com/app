@@ -1,60 +1,215 @@
-import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { router, useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Camera, VisionCamera } from 'react-native-vision-camera';
 
+import { applyAudioSession } from '@/audio/audioSession';
 import { AccessibleButton, StatusBorder } from '@/components';
+import { cues } from '@/cues';
 import { subjectLabel } from '@/features/framing/subject';
+import {
+  ensureCameraPermission,
+  ensureMicrophonePermission,
+  ensureSpeechPermission,
+  hasMicrophonePermission,
+  hasSpeechPermission,
+} from '@/features/permissions/permissions';
+import { useRecorder } from '@/features/recording/useRecorder';
+import type { VoiceCommand } from '@/features/voice/commands';
+import { useVoiceCommands } from '@/features/voice/useVoiceCommands';
+import { useAppActive } from '@/hooks/useAppActive';
+import { useHardwareButton } from '@/hooks/useHardwareButton';
 import { strings } from '@/i18n';
-import { nextInCycle } from '@/store/settingsStore';
 import { GUIDANCE_MODES, useSession } from '@/store/sessionStore';
+import { nextInCycle, useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
-import { announce, useScreenAnnouncement } from '@/utils/accessibility';
+import { useScreenAnnouncement } from '@/utils/accessibility';
 import { formatClock, splitDuration } from '@/utils/time';
 
-// Phase 0 skeleton: zones, navigation and state are wired. The live camera, recording, cues and
-// volume button control are added in Phase 1.
+import { isHardwareButtonSupported } from '../modules/lumi-hardware-buttons';
+
+const t = strings.camera;
+
 export default function CameraScreen() {
   const { colors, typography, spacing, layout } = useTheme('dark');
   const insets = useSafeAreaInsets();
-  const t = strings.camera;
+  const isFocused = useIsFocused();
+  const appActive = useAppActive();
 
   const mode = useSession((s) => s.mode);
   const setMode = useSession((s) => s.setMode);
   const facing = useSession((s) => s.facing);
   const setFacing = useSession((s) => s.setFacing);
   const subject = useSession((s) => s.subject);
-  const isRecording = useSession((s) => s.isRecording);
+  const phase = useSession((s) => s.recordingPhase);
   const startedAt = useSession((s) => s.recordingStartedAt);
-  const startRecording = useSession((s) => s.startRecording);
-  const stopRecording = useSession((s) => s.stopRecording);
+  const voiceWhileRecording = useSettings((s) => s.voiceCommandsWhileRecording);
+  const elapsedInterval = useSettings((s) => s.elapsedTimeInterval);
+
+  const [cameraAllowed, setCameraAllowed] = useState(
+    () => VisionCamera.cameraPermissionStatus === 'authorized',
+  );
+  const [micAllowed, setMicAllowed] = useState(hasMicrophonePermission);
+  const [speechAllowed, setSpeechAllowed] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const isRecording = phase === 'recording';
+  const volumeButton = isHardwareButtonSupported();
 
   useScreenAnnouncement(t.screenAnnouncement);
   const elapsed = useElapsed(startedAt);
 
-  const toggleRecording = () => {
-    if (isRecording) {
-      stopRecording();
-      announce(t.recordingStopped);
-      router.push('/review');
-    } else {
-      startRecording();
-      announce(t.recordingStarted);
-    }
-  };
+  // Permissions: explained by voice, asked one at a time, the first time the camera opens.
+  const permissionFlowStarted = useRef(false);
+  useEffect(() => {
+    if (!isFocused || permissionFlowStarted.current) return;
+    permissionFlowStarted.current = true;
+    (async () => {
+      setCameraAllowed(await ensureCameraPermission());
+      const mic = await ensureMicrophonePermission();
+      setMicAllowed(mic);
+      if (mic) setSpeechAllowed(await ensureSpeechPermission());
+    })();
+  }, [isFocused]);
 
-  const flip = () => {
-    const next = facing === 'front' ? 'back' : 'front';
+  // Pick up permissions changed in the phone's settings while Lumi was in the background.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') return;
+      setCameraAllowed(VisionCamera.cameraPermissionStatus === 'authorized');
+      setMicAllowed(hasMicrophonePermission());
+      hasSpeechPermission().then(setSpeechAllowed);
+    });
+    return () => sub.remove();
+  }, []);
+
+  const recorder = useRecorder(micAllowed, {
+    onStarted: () => {
+      cues.clear('guidance');
+      cues.say({
+        id: `sys.rec.start.${Date.now()}`,
+        category: 'system',
+        text: micAllowed ? t.recordingStarted : `${t.recordingStarted}. ${t.micOff}`,
+        earcon: 'start',
+        haptic: 'single',
+      });
+    },
+    onFinished: () => {
+      cues.say({
+        id: `sys.rec.stop.${Date.now()}`,
+        category: 'system',
+        text: t.recordingStopped,
+        earcon: 'stop',
+        haptic: 'single',
+      });
+      router.push('/review');
+    },
+    onError: (error) => {
+      console.warn('Recording error', error);
+      cues.say({
+        id: `sys.rec.error.${Date.now()}`,
+        category: 'system',
+        text: t.recordFailed,
+        earcon: 'error',
+        haptic: 'double',
+      });
+    },
+  });
+
+  const toggleRecording = useCallback(() => {
+    const current = useSession.getState().recordingPhase;
+    if (current === 'recording') {
+      recorder.stop();
+    } else if (current === 'idle') {
+      if (!cameraReady) {
+        cues.say({ id: 'sys.notReady', category: 'system', text: t.status.notReady, force: true });
+        return;
+      }
+      recorder.start();
+    }
+  }, [cameraReady, recorder]);
+
+  const flip = useCallback(() => {
+    if (useSession.getState().recordingPhase !== 'idle') {
+      cues.say({ id: 'sys.notWhileRecording', category: 'system', text: t.notWhileRecording });
+      return;
+    }
+    const next = useSession.getState().facing === 'front' ? 'back' : 'front';
     setFacing(next);
-    announce(t.facing[next]);
-  };
+    cues.say({ id: `sys.facing.${next}`, category: 'system', text: t.facing[next], force: true });
+  }, [setFacing]);
 
   const switchMode = () => {
     const next = nextInCycle(GUIDANCE_MODES, mode);
     setMode(next);
-    announce(t.modes[next]);
+    cues.say({ id: `sys.mode.${next}`, category: 'system', text: t.modes[next], force: true });
   };
+
+  const speakStatus = () => {
+    const text = isRecording
+      ? t.status.recording(strings.common.duration(elapsed / 1000))
+      : cameraReady
+        ? t.status.idle(t.facing[facing], t.modes[mode], subjectLabel(subject).toLowerCase())
+        : t.status.notReady;
+    cues.say({ id: 'sys.status', category: 'system', text, force: true });
+  };
+
+  const onCommand = useCallback(
+    (command: VoiceCommand) => {
+      const current = useSession.getState().recordingPhase;
+      switch (command.type) {
+        case 'startRecording':
+          if (current === 'idle') toggleRecording();
+          return;
+        case 'stopRecording':
+          if (current === 'recording') toggleRecording();
+          return;
+        case 'switchCamera':
+          flip();
+          return;
+        case 'help':
+          cues.say({ id: 'sys.help', category: 'system', text: strings.voice.help, force: true });
+          return;
+        default:
+          cues.say({ id: 'sys.notYet', category: 'system', text: strings.voice.notYet });
+      }
+    },
+    [flip, toggleRecording],
+  );
+
+  const screenLive = isFocused && appActive;
+  useHardwareButton(screenLive && cameraReady, toggleRecording);
+  useVoiceCommands(
+    screenLive &&
+      micAllowed &&
+      speechAllowed &&
+      (phase === 'idle' || (voiceWhileRecording && isRecording)),
+    onCommand,
+  );
+
+  // Never leave a recording running in the background or behind another screen.
+  useEffect(() => {
+    if (!screenLive && useSession.getState().recordingPhase === 'recording') recorder.stop();
+  }, [screenLive, recorder]);
+
+  // Spoken elapsed time while recording (Settings > Camera and recording).
+  useEffect(() => {
+    if (startedAt === null || elapsedInterval === 0) return;
+    let announced = 0;
+    const id = setInterval(() => {
+      const count = Math.floor((Date.now() - startedAt) / 1000 / elapsedInterval);
+      if (count > announced) {
+        announced = count;
+        cues.say({
+          id: `sys.elapsed.${count}`,
+          category: 'system',
+          text: t.elapsed(strings.common.duration(count * elapsedInterval)),
+        });
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [startedAt, elapsedInterval]);
 
   const edge = {
     top: insets.top + spacing.md,
@@ -63,10 +218,42 @@ export default function CameraScreen() {
     right: insets.right + spacing.md,
   };
   const { minutes, seconds } = splitDuration(elapsed);
+  const recordHint = [isRecording ? t.record.stopHint : t.record.idleHint]
+    .concat(volumeButton ? [t.record.volumeHint] : [])
+    .join('. ');
+  const centreMessage = !cameraAllowed
+    ? strings.permissions.camera.screenText
+    : !cameraReady
+      ? t.starting
+      : null;
 
   return (
     <View style={[styles.fill, { backgroundColor: colors.background }]}>
       <StatusBar style="light" />
+
+      {cameraAllowed ? (
+        <Camera
+          style={StyleSheet.absoluteFill}
+          device={facing}
+          isActive={screenLive}
+          outputs={recorder.outputs}
+          onConfigured={recorder.onConfigured}
+          onStarted={() => {
+            setCameraReady(true);
+            applyAudioSession();
+          }}
+          onStopped={() => setCameraReady(false)}
+          onError={(error) => console.warn('Camera error', error)}
+          onInterruptionStarted={() => {
+            if (useSession.getState().recordingPhase === 'recording') {
+              recorder.stop();
+              cues.say({ id: 'sys.interrupted', category: 'system', text: t.interrupted });
+            }
+          }}
+          allowHapticsAndSystemSoundsPlayback
+          resizeMode="cover"
+        />
+      ) : null}
 
       {/* Top row: Settings (top left), timer, Flip (top right). Rendered first for screen reader order. */}
       <View style={[styles.corner, styles.layerControls, { top: edge.top, left: edge.left }]}>
@@ -77,6 +264,7 @@ export default function CameraScreen() {
           icon="⚙"
           text=""
           onPress={() => router.push('/settings')}
+          disabled={phase !== 'idle'}
           testID="camera-settings"
         />
       </View>
@@ -96,7 +284,7 @@ export default function CameraScreen() {
           ]}
           accessible
           accessibilityRole="text"
-          accessibilityLabel={`${t.recordingStarted}, ${t.timer(minutes, seconds)}`}
+          accessibilityLabel={t.timerLabel(strings.common.duration(minutes * 60 + seconds))}
         >
           <Text style={[typography.timer, { color: colors.textPrimary }]}>
             {`● ${formatClock(elapsed)}`}
@@ -123,22 +311,38 @@ export default function CameraScreen() {
         accessibilityRole="button"
         accessibilityLabel={t.preview.label}
         accessibilityHint={t.preview.hint}
-        onPress={() => announce(t.statusPlaceholder)}
+        onPress={speakStatus}
         testID="camera-preview"
       >
-        <View
-          style={{
-            backgroundColor: colors.surfaceOverlay,
-            borderRadius: layout.cornerRadius,
-            padding: spacing.md,
-            marginHorizontal: spacing.xl,
-          }}
-        >
-          <Text style={[typography.body, styles.centerText, { color: colors.textPrimary }]}>
-            {t.placeholder}
-          </Text>
-        </View>
+        {centreMessage ? (
+          <View
+            style={{
+              backgroundColor: colors.surfaceOverlay,
+              borderRadius: layout.cornerRadius,
+              padding: spacing.md,
+              marginHorizontal: spacing.xl,
+            }}
+          >
+            <Text style={[typography.body, styles.centerText, { color: colors.textPrimary }]}>
+              {centreMessage}
+            </Text>
+          </View>
+        ) : null}
       </Pressable>
+
+      {!cameraAllowed ? (
+        <View style={[styles.settingsLink, styles.layerControls]} pointerEvents="box-none">
+          <AccessibleButton
+            scheme="dark"
+            label={strings.permissions.openSettings.label}
+            hint={strings.permissions.openSettings.hint}
+            onPress={() => {
+              Linking.openSettings().catch(() => {});
+            }}
+            testID="camera-open-settings"
+          />
+        </View>
+      ) : null}
 
       <StatusBorder status={null} />
 
@@ -161,9 +365,9 @@ export default function CameraScreen() {
         <Pressable
           accessible
           accessibilityRole="button"
-          accessibilityLabel={isRecording ? t.record.stopLabel : t.record.startLabel}
-          accessibilityHint={t.record.hint}
-          accessibilityState={{ selected: isRecording }}
+          accessibilityLabel={isRecording ? t.record.stopLabel : t.record.idleLabel}
+          accessibilityHint={recordHint}
+          accessibilityState={{ selected: isRecording, busy: phase === 'starting' }}
           onPress={toggleRecording}
           testID="camera-record"
           style={({ pressed }) => [
@@ -199,6 +403,7 @@ export default function CameraScreen() {
           hint={t.subject.hint}
           text={subjectLabel(subject)}
           onPress={() => router.push('/subject')}
+          disabled={phase !== 'idle'}
           testID="camera-subject"
         />
       </View>
@@ -224,6 +429,7 @@ const styles = StyleSheet.create({
   corner: { position: 'absolute' },
   timer: { position: 'absolute', alignSelf: 'center' },
   recordWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  layerPreview: { zIndex: 0 },
+  settingsLink: { position: 'absolute', left: 0, right: 0, top: '60%', alignItems: 'center' },
+  layerPreview: { zIndex: 1 },
   layerControls: { zIndex: 2 },
 });
