@@ -6,32 +6,37 @@ this script.
 
 ## Before every test session
 
-1. Install the latest development build (see README, "Run on your phone").
-2. Start Metro on your computer: `npm start`. Phone and computer on the same Wi Fi.
-3. Note phone model, OS version, Lumi commit hash (Settings > More > About shows the version).
-4. Test each section twice: once with the screen reader off, once with it on.
+1. Install the latest build (see README, "Run on your phone"):
+   - Android, simplest: open
+     https://github.com/vanguard-com/app/releases/download/android-latest/lumi-latest.apk on the
+     phone and install. No computer needed.
+   - Development build instead: run `npm start` on your computer, phone on the same Wi Fi.
+2. Note phone model, OS version and Lumi build (the release title on GitHub shows the commit).
+3. Test each section twice: once with the screen reader off, once with it on.
    - iOS: Settings > Accessibility > VoiceOver (or triple click side button if shortcut is set)
    - Android: Settings > Accessibility > TalkBack (or hold both volume keys 3 seconds if shortcut is set)
-5. Write results in the table at the end: pass, fail, notes.
+4. Write results in the table at the end: pass, fail, notes.
 
 ## Test environments (from Phase 2 on)
 
-| Code | Environment |
-|---|---|
-| E1 | Bright room, light from in front of the user |
-| E2 | Dark room, one small lamp |
-| E3 | Backlit: user sits with a bright window behind them |
-| E4 | Side lit: one lamp to the left or right of the user |
-| E5 | Outdoors, daylight |
+| Code | Environment                                         |
+| ---- | --------------------------------------------------- |
+| E1   | Bright room, light from in front of the user        |
+| E2   | Dark room, one small lamp                           |
+| E3   | Backlit: user sits with a bright window behind them |
+| E4   | Side lit: one lamp to the left or right of the user |
+| E5   | Outdoors, daylight                                  |
 
 ## Phase 0: app shell
 
 ### 0.1 Install and launch
+
 1. Install the build and open Lumi.
 2. Expected: amber ring icon on dark background in the launcher. Splash shows the same mark on dark
    background, then the Welcome screen.
 
 ### 0.2 First launch goes to Welcome
+
 1. Fresh install (or delete app data), open Lumi.
 2. Expected: Welcome screen. With screen reader on you hear "Welcome to Lumi".
 3. Tap Start (screen reader: double tap).
@@ -39,20 +44,22 @@ this script.
 5. Close Lumi fully and open again. Expected: opens straight on Camera, not Welcome.
 
 ### 0.3 Camera screen zones (screen reader on)
+
 Swipe right through the screen. Expected order and speech:
 
-| Zone | Speech |
-|---|---|
-| Top left | "Settings, button. Opens settings" |
-| Top right | "Flip camera, button. Switches between front and back camera" |
-| Centre | "Camera view, button. Double tap to hear current status" |
-| Bottom left | "Mode: Framing, button. Double tap to switch guidance mode" |
+| Zone          | Speech                                                        |
+| ------------- | ------------------------------------------------------------- |
+| Top left      | "Settings, button. Opens settings"                            |
+| Top right     | "Flip camera, button. Switches between front and back camera" |
+| Centre        | "Camera view, button. Double tap to hear current status"      |
+| Bottom left   | "Mode: Framing, button. Double tap to switch guidance mode"   |
 | Bottom centre | "Start recording, button. You can also press a volume button" |
-| Bottom right | "Subject: My face, button. Opens subject setup" |
+| Bottom right  | "Subject: My face, button. Opens subject setup"               |
 
 Note any zone read out of order, read twice, or missing.
 
 ### 0.4 Camera controls (Phase 0 has no live camera yet)
+
 1. Double tap Flip camera. Expected: hears "Back camera". Again: "Front camera".
 2. Double tap Mode 4 times. Expected: "Lighting", "Feedback", "Background", "Framing".
 3. Double tap Record. Expected: "Recording", a timer appears at top centre, record button inner
@@ -63,6 +70,7 @@ Note any zone read out of order, read twice, or missing.
    bottom right button now says "My whole body".
 
 ### 0.5 Settings
+
 1. Camera > Settings. Expected: 4 buttons: Sound and speech, Live feedback, Camera and recording, More.
 2. Sound and speech > Verbosity. With VoiceOver: swipe up / down changes value (Minimal, Standard,
    Detailed). With TalkBack: double tap steps forward. Expected value spoken each time.
@@ -76,12 +84,94 @@ Note any zone read out of order, read twice, or missing.
 9. More > Privacy policy. Expected: browser opens the policy page.
 
 ### 0.6 Visual checks (screen reader off)
+
 1. Phone in dark mode: Settings, Review, Welcome are dark. Phone in light mode: they are white with
    near black text. Camera is dark in both.
 2. Set phone text size to the largest (iOS: Accessibility > Display & Text Size > Larger Text;
    Android: Display > Font size). Expected: all text grows, nothing is cut off, screens scroll.
 3. Every button is at least a fingertip wide (60 pt). Nothing flashes or pulses.
 4. Rotate phone to landscape on Camera. Expected: buttons stay in the 4 corners and bottom centre.
+
+## Phase 1: cues, camera, recording, saving
+
+New native code: install a fresh build (new APK, or rebuild with `npx expo run:ios --device`).
+Before each step, note whether earphones are connected. Default setting: cues during recording =
+Earphones only.
+
+### 1.1 Permissions on first launch (fresh install)
+
+1. Open Lumi, tap Start.
+2. Expected: Lumi says why it needs the camera, then the system camera prompt appears. Allow.
+3. Expected: same for microphone, then (iPhone) speech recognition. Allow both.
+4. Reinstall and deny each one. Expected after each denial: Lumi explains what will not work and
+   how to allow it in settings. With camera denied, the centre says "Camera access is off" and an
+   "Open settings" button appears; it opens Lumi in the phone settings.
+
+### 1.2 Live camera
+
+1. Expected: live front camera fills the screen behind the controls.
+2. Tap the centre (screen reader: double tap). Expected: "Camera ready. Front camera. Framing mode.
+   Keeping my face in frame."
+3. Tap Flip. Expected: "Back camera" and the back camera shows. Tap again: "Front camera".
+
+### 1.3 Record with the record button (no earphones)
+
+1. Tap Record. Expected within about 1 second: rising 3 note sound is NOT heard (no earphones),
+   1 buzz, timer appears at top centre, button shape becomes a square.
+2. Talk for 40 seconds, then tap the button again. Expected: 1 buzz, Review opens and says
+   "Video length 40 seconds. Use Save to keep it in your photos, or Retake for a new one."
+3. Tap Save. Expected first time: add-to-Photos permission prompt; then "Saved to Photos" with a
+   2 note sound. Open the Photos / Gallery app: the video is there, with sound, right way up.
+4. Note: is any buzz audible in the video's sound?
+
+### 1.4 Record with earphones (wired and Bluetooth)
+
+1. Connect earphones. Record for 70 seconds.
+2. Expected in the earphones: start sound and "Recording", then "30 seconds", "1 minute".
+3. Play the video: Lumi's sounds must NOT be in it, and your voice must sound normal (not like a
+   phone call). Report the earphone model if it sounds like a phone call.
+
+### 1.5 Volume button (iPhone with iOS 17.2 or newer, all Android phones)
+
+1. On the camera screen, press either volume button. Expected: recording starts; the phone's volume
+   does not change and no volume bar appears.
+2. Press again. Expected: recording stops and Review opens.
+3. Set the phone volume to maximum and repeat. Expected: still works.
+4. On Review and Settings, volume buttons change the volume normally.
+5. iPhone on iOS 16 / 17.0 / 17.1: volume buttons only change volume (expected, see DECISIONS D23).
+
+### 1.6 Voice only and volume only (Phase 1 "done when")
+
+1. Say "start recording". Expected: recording starts within about 1 second.
+2. Press a volume button to stop (voice commands pause during recording by default).
+3. On Review, say "save video". Expected: "Saved to Photos".
+4. Record again, then on Review say "retake video". Expected: back on the camera, video deleted.
+5. Say "switch camera" and "help". Expected: camera flips; Lumi lists the commands.
+6. Say "check lighting". Expected: "That command comes in a later update."
+
+### 1.7 Interruptions
+
+1. Start recording, press Home / swipe to home. Reopen Lumi. Expected: recording stopped, Review
+   shows the video up to that point.
+2. Start recording, receive a phone call (or start a voice note in another app). Expected:
+   recording stops and Lumi explains why.
+
+### 1.8 Settings that change cues
+
+1. Settings > Camera and recording > Cues during recording = Always on. Record without earphones.
+   Expected: "Recording" and "30 seconds" on the loudspeaker (and therefore in the video).
+2. Set Pause cues. Expected: no sound and no buzz while recording.
+3. Settings > Camera and recording > Announce recording time = Every minute / Off. Expected:
+   announcements follow the setting.
+4. Settings > Sound and speech: change Voice speed and Cue volume, tap the camera centre. Expected:
+   the status is spoken faster / slower, louder / quieter.
+
+### 1.9 With VoiceOver / TalkBack on
+
+1. Repeat 1.2, 1.3, 1.6. Expected: Lumi's messages are spoken by the screen reader voice, never two
+   voices at once.
+2. Swipe through the camera controls while voice commands are listening, without earphones.
+   Expected: the screen reader reading "Record", "Flip camera" etc. never triggers a command.
 
 ## Full screen reader run (final acceptance, Phase 7)
 
@@ -91,6 +181,6 @@ review, save, share to YouTube. Record every point where sighted help was needed
 
 ## Results
 
-| Date | Phone | OS | Commit | Section | Reader | Result | Notes |
-|---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Date | Phone | OS  | Commit | Section | Reader | Result | Notes |
+| ---- | ----- | --- | ------ | ------- | ------ | ------ | ----- |
+|      |       |     |        |         |        |        |       |

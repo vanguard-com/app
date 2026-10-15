@@ -3,13 +3,17 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { applyAudioSession } from '@/audio/audioSession';
+import { useCueEngineSync } from '@/cues/useCueEngineSync';
 import { darkPalette, useTheme } from '@/theme';
 
 // Settings come from MMKV synchronously, so the splash can hide as soon as the first frame renders.
 SplashScreen.preventAutoHideAsync().catch(() => {});
+applyAudioSession();
 
 export default function RootLayout() {
   const { colors } = useTheme();
+  useCueEngineSync();
 
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});

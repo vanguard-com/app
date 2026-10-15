@@ -1,0 +1,78 @@
+name: Android APK
+
+# Builds an installable Android test APK (no Expo account or paid service needed).
+# - Pull requests: proves the native Android build compiles; APK kept as a 14 day artifact.
+# - main / manual run: also publishes the APK to the "android-latest" pre-release so it can be
+#   downloaded straight onto a phone:
+#   https://github.com/vanguard-com/app/releases/download/android-latest/lumi-latest.apk
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --no-install
+
+      # Release build bundles the JavaScript, so the APK runs without a computer.
+      # It is signed with the template's debug keystore, so every build installs over the last one.
+      # arm64 only keeps the build fast; every phone Lumi supports is 64 bit ARM.
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+
+      - name: Rename APK
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          mkdir -p out
+          cp android/app/build/outputs/apk/release/app-release.apk "out/lumi-${SHORT_SHA}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk out/lumi-latest.apk
+          echo "SHORT_SHA=${SHORT_SHA}" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lumi-${{ env.SHORT_SHA }}-apk
+          path: out/lumi-${{ env.SHORT_SHA }}.apk
+          retention-days: 14
+
+      - name: Publish android-latest pre-release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete android-latest --yes --cleanup-tag || true
+          gh release create android-latest out/lumi-latest.apk "out/lumi-${SHORT_SHA}.apk" \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Lumi Android test build (${SHORT_SHA})" \
+            --notes "Test build from commit ${GITHUB_SHA} on $(date -u +'%Y-%m-%d %H:%M UTC'). Open lumi-latest.apk on your Android phone to install. Not for store release."

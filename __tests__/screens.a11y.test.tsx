@@ -1,4 +1,4 @@
-import { renderRouter, screen } from 'expo-router/testing-library';
+import { act, renderRouter, screen } from 'expo-router/testing-library';
 
 import { useSettings } from '@/store/settingsStore';
 
@@ -27,10 +27,12 @@ function interactiveElements() {
 
 describe.each(SCREENS)('$url', ({ url, maxControls, minControls = 1 }) => {
   let pathname = '';
-  beforeEach(() => {
+  beforeEach(async () => {
     useSettings.getState().reset();
     useSettings.getState().update({ onboardingComplete: true });
     pathname = renderRouter('./app', { initialUrl: url }).getPathname();
+    // Let async permission checks settle so state updates happen inside act().
+    await act(async () => {});
   });
 
   it('renders the expected route', () => {
@@ -60,9 +62,10 @@ describe('first launch', () => {
     expect(renderRouter('./app', { initialUrl: '/' }).getPathname()).toBe('/welcome');
   });
 
-  it('opens the camera once onboarding is complete', () => {
+  it('opens the camera once onboarding is complete', async () => {
     useSettings.getState().reset();
     useSettings.getState().update({ onboardingComplete: true });
     expect(renderRouter('./app', { initialUrl: '/' }).getPathname()).toBe('/camera');
+    await act(async () => {});
   });
 });

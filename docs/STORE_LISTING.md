@@ -2,11 +2,11 @@
 
 ## Names
 
-| Field | Limit | Text |
-|---|---|---|
-| App name | 30 | Lumi |
-| iOS subtitle | 30 | Film yourself without sight |
-| Google Play short description | 80 | Talking camera that guides blind and low vision creators to frame and film |
+| Field                         | Limit | Text                                                                       |
+| ----------------------------- | ----- | -------------------------------------------------------------------------- |
+| App name                      | 30    | Lumi                                                                       |
+| iOS subtitle                  | 30    | Film yourself without sight                                                |
+| Google Play short description | 80    | Talking camera that guides blind and low vision creators to frame and film |
 
 ## Keywords (iOS, 100 characters, comma separated, no spaces)
 
@@ -41,7 +41,7 @@ reads a summary: length, how long you were in frame, lighting quality. Then save
 YouTube, TikTok, Instagram, WhatsApp and more.
 
 PRIVATE BY DESIGN
-Everything runs on your phone. No account, no ads, no tracking. Your video, images and voice never
+Camera analysis runs on your phone. No account, no ads, no tracking. Your video and images never
 leave your phone.
 
 ## Accessibility features
@@ -70,18 +70,27 @@ open Lumi, tap Start, point the front camera at your face. You will hear tones g
 frame. Tap the record button (bottom centre) or press a volume button to record.
 
 - Camera: shows and records video; frames are analysed on device to guide framing and lighting.
-- Microphone: recorded with the video; loudness and pace analysed on device for voice feedback.
-- Speech recognition: voice commands like "start recording".
+- Microphone: recorded with the video; loudness and pitch analysed on device for voice feedback.
+- Speech recognition: voice commands like "start recording" and speaking pace feedback.
 - Photo library: saving videos the user chooses to keep.
 
-No account or login. No data leaves the device. The only network use is an optional, user
-confirmed download of an on-device AI model from huggingface.co.
+No account or login. Lumi uploads nothing. Its only network use is an optional, user confirmed
+download of an on-device AI model from huggingface.co. Voice commands use the system speech
+recognizer (on device when supported, otherwise Apple / Google speech service).
 
 ## Privacy answers
 
-- App Store privacy label: Data Not Collected
-- Google Play data safety: No data collected, no data shared
-- Privacy policy URL: [URL where docs/PRIVACY.md is hosted]
+- App Store privacy label: Data Not Collected (Lumi never receives audio; speech goes only to
+  Apple's own recognizer). Final check in Phase 8, see DECISIONS D19
+- Google Play data safety: No data shared. Collection answer for voice (system recognizer,
+  processed ephemerally) to be confirmed in Phase 8
+- Privacy policy URL: [URL where docs/PRIVACY.md is hosted, owner's domain pending]
+- Support email: projectvanguard.sg@gmail.com
+
+## Screenshot sizes needed
+
+- iPhone 6.9 inch (1320 x 2868) and iPad 13 inch (2064 x 2752)
+- Google Play phone screenshots (at least 2, 16:9 or 9:16)
 
 ## Category and rating
 

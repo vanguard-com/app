@@ -1,7 +1,7 @@
 # Lumi Privacy Policy
 
 Effective date: [DATE OF FIRST RELEASE]
-Contact: [CONTACT EMAIL]
+Contact: projectvanguard.sg@gmail.com
 
 Lumi is a camera app that helps blind and low vision people film videos on their own. This policy
 explains what happens to your information when you use Lumi.
@@ -9,20 +9,21 @@ explains what happens to your information when you use Lumi.
 ## Summary
 
 - Lumi does not collect, store on any server, sell or share any personal data.
-- All camera, microphone and speech analysis runs on your phone. No video, image, audio or
-  transcript ever leaves your phone because of Lumi.
+- All camera and video analysis runs on your phone. Lumi never uploads your video or images.
+- To understand voice commands, your phone's own speech recognition (Apple or Google) may send your
+  voice to their servers when it cannot do the work on the phone. See "Speech recognition" below.
 - Lumi has no accounts, no ads, no analytics and no tracking.
-- The only internet use is downloading AI model files from Hugging Face when you ask for scene
-  descriptions.
+- Lumi itself only uses the internet to download AI model files from Hugging Face when you ask
+  for scene descriptions.
 
 ## What Lumi uses on your phone, and why
 
-| Permission | What Lumi does with it |
-|---|---|
-| Camera | Shows and records video, and analyses frames on the phone to guide framing, lighting and background |
-| Microphone | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback |
-| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below |
-| Photo library | Saves your videos to your photos, only when you choose Save |
+| Permission         | What Lumi does with it                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------- |
+| Camera             | Shows and records video, and analyses frames on the phone to guide framing, lighting and background     |
+| Microphone         | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback |
+| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below                    |
+| Photo library      | Saves your videos to your photos, only when you choose Save                                             |
 
 You can turn any permission off in your phone's settings. Lumi tells you which features stop working.
 
@@ -39,10 +40,16 @@ to your Google account. Deleting Lumi deletes all of it except videos you saved 
 
 ## Speech recognition
 
-Lumi asks your phone to use on-device speech recognition. On some phones and languages the
-operating system's speech service may send audio to Apple or Google to convert it to text. That
-processing is done by Apple or Google under their privacy policies, not by Lumi, and Lumi never
-receives or stores the audio. You can use every Lumi feature with buttons instead of voice.
+Lumi uses the speech recognition built into your phone for voice commands and for feedback on
+your speaking pace. Lumi asks for recognition on the phone whenever your phone supports it. When
+it does not, your phone sends your voice to Apple (iPhone) or Google (Android) to turn it into
+text. Apple or Google handles that audio under their own privacy policies:
+
+- Apple: https://www.apple.com/legal/privacy/
+- Google: https://policies.google.com/privacy
+
+Lumi only receives the resulting text, uses it on your phone, and does not store it. You can use
+every Lumi feature with buttons instead of voice.
 
 ## Model downloads
 
@@ -67,4 +74,4 @@ If this policy changes, the new version will be posted at this address with a ne
 
 ## Contact
 
-Questions: [CONTACT EMAIL]
+Questions: projectvanguard.sg@gmail.com
