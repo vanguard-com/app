@@ -22,12 +22,17 @@ describe('framing geometry', () => {
     expect(analyseBox({ ...centered, x: 0.02 }, false).state).toBe('left');
     expect(analyseBox({ x: 0.1, y: 0.1, width: 0.8, height: 0.8 }, false).state).toBe('good');
   });
-  it.each([false, true])('corrects phone directions for mirroring=%s', (mirrored) => {
+  it.each([false, true])('supports explicit horizontal reversal=%s', (mirrored) => {
     const r = analyseBox({ ...centered, x: 0.75 }, mirrored);
     expect(r.state).toBe(mirrored ? 'left' : 'right');
     expect(Math.sign(r.pan)).toBe(mirrored ? -1 : 1);
     expect(analyseBox({ ...centered, y: 0.02 }, mirrored).state).toBe('up');
     expect(analyseBox({ ...centered, y: 0.7 }, mirrored).state).toBe('down');
+  });
+  it('does not reverse an already mirrored front-camera preview a second time', () => {
+    const visibleRight = { ...centered, x: 0.75 };
+    expect(analyseBox(visibleRight, false).state).toBe('right');
+    expect(analyseBox(visibleRight, false).pan).toBeGreaterThan(0);
   });
   it('uses high pitch for up, low for down and faster beeps nearer centre', () => {
     expect(analyseBox({ ...centered, y: 0 }, false).frequency).toBeGreaterThan(440);

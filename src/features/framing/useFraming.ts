@@ -69,7 +69,10 @@ export function useFraming(
         if (box) targets.push({ box, id: face.trackingId });
       }
       failure.current = false;
-      const next = tracker.current.update(targets, now, facing === 'front', current.safeZone);
+        // mirrorMode=auto already gives a mirrored front preview. In that user-facing view,
+        // moving the phone right moves the subject left, just as with the rear preview.
+        // Reversing again here would produce the wrong physical movement instruction.
+        const next = tracker.current.update(targets, now, false, current.safeZone);
       publish(next);
       metrics.current.count++;
       if (now - metrics.current.start >= 1000) {

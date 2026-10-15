@@ -55,7 +55,7 @@ export function previewBox(
 
 export function analyseBox(
   box: Box | null,
-  mirrored: boolean,
+  reverseHorizontal: boolean,
   safeZone = 0.8,
   wasGood = false,
 ): Framing {
@@ -70,7 +70,9 @@ export function analyseBox(
   };
   if (!box || !validBox(box)) return empty;
   const { x, y, width: w, height: h } = box;
-  const dx = (x + w / 2 - 0.5) * (mirrored ? -1 : 1);
+  // Only an explicitly UNmirrored front preview needs reversal. Native auto-mirrored
+  // front previews and rear previews both use the visible horizontal offset directly.
+  const dx = (x + w / 2 - 0.5) * (reverseHorizontal ? -1 : 1);
   const dy = y + h / 2 - 0.5;
   const edges: Framing['edges'] = [];
   if (x <= 0.015) edges.push('left');
@@ -144,17 +146,22 @@ export class FramingTracker {
     this.lastSeen = now;
     this.pendingSince = now;
   }
-  update(targets: Target[], now: number, mirrored: boolean, safeZone: number): Framing {
+  update(
+    targets: Target[],
+    now: number,
+    reverseHorizontal: boolean,
+    safeZone: number,
+  ): Framing {
     const selected = chooseTarget(targets, this.target);
     if (!selected) return this.tick(now);
     this.lastSeen = now;
     this.target = selected;
     this.smoothed = smoothBox(this.smoothed, selected.box);
-    const raw = analyseBox(selected.box, mirrored, safeZone);
+    const raw = analyseBox(selected.box, reverseHorizontal, safeZone);
     // Never smooth away a visible edge crossing.
     const next = raw.edges.length
       ? raw
-      : analyseBox(this.smoothed, mirrored, safeZone, this.result.state === 'good');
+      : analyseBox(this.smoothed, reverseHorizontal, safeZone, this.result.state === 'good');
     if (this.pending !== next.state) {
       this.pending = next.state;
       this.pendingSince = now;
