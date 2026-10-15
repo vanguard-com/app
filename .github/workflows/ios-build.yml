@@ -1,0 +1,64 @@
+name: iOS build
+
+# Compiles the iOS app for the simulator (no signing, no Apple account) to catch Swift and native
+# library errors before anyone builds on a Mac. Free on public repos.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compile for iOS simulator
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate native iOS project
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Install pods
+        working-directory: ios
+        run: pod install
+
+      - name: Build
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace Lumi.xcworkspace \
+            -scheme Lumi \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            build > build.log 2>&1 || {
+              grep -E "error:|BUILD FAILED" build.log | head -100
+              exit 1
+            }
+          grep -E "BUILD SUCCEEDED" build.log
+
+      - name: Keep build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-log
+          path: ios/build.log
+          retention-days: 7
