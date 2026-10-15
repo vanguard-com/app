@@ -13,11 +13,12 @@
     "ios": {
       "bundleIdentifier": "com.vanguard.lumi",
       "buildNumber": "1",
-      "supportsTablet": false,
+      "supportsTablet": true,
       "deploymentTarget": "16.4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "requireFullScreen": true
     },
     "android": {
       "package": "com.vanguard.lumi",

@@ -23,7 +23,8 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 
 - Node.js 22 (20.19 minimum) and npm
 - Android: Android Studio with Android SDK 36, JDK 17, a phone with USB debugging on
-- iOS: a Mac with Xcode 16.1 or newer, an iPhone, a free or paid Apple ID
+- iOS: a Mac with the latest Xcode (16.1 minimum), CocoaPods, an iPhone or iPad, a free or paid
+  Apple ID
 - Expo Go does **not** work: Lumi uses custom native modules, so it needs a development build
 
 ## Setup

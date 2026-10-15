@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Pressable, Text } from 'react-native';
 
 import { Screen, ScreenHeader } from '@/components';
-import { APP_VERSION, DEBUG_UNLOCK_TAPS } from '@/config/app';
+import { APP_VERSION, DEBUG_UNLOCK_TAPS, SUPPORT_EMAIL } from '@/config/app';
 import { strings } from '@/i18n';
 import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
@@ -48,6 +48,12 @@ export default function AboutScreen() {
       </Pressable>
       <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>
         {t.aboutBody}
+      </Text>
+      <Text
+        selectable
+        style={[typography.body, { color: colors.textPrimary, marginTop: spacing.md }]}
+      >
+        {t.contact(SUPPORT_EMAIL)}
       </Text>
     </Screen>
   );

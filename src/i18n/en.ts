@@ -131,6 +131,7 @@ export const en = {
     privacy: { label: 'Privacy policy', hint: 'Opens the privacy policy in your browser' },
     about: { label: 'About Lumi', hint: 'Version and licences' },
     version: (v: string) => `Version ${v}`,
+    contact: (email: string) => `Contact: ${email}`,
     aboutBody:
       'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Model licence notices will appear here.',
     debugEnabled: 'Debug overlay on',

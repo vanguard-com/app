@@ -1,7 +1,7 @@
 # Lumi Privacy Policy
 
 Effective date: [DATE OF FIRST RELEASE]
-Contact: [CONTACT EMAIL]
+Contact: projectvanguard.sg@gmail.com
 
 Lumi is a camera app that helps blind and low vision people film videos on their own. This policy
 explains what happens to your information when you use Lumi.
@@ -74,4 +74,4 @@ If this policy changes, the new version will be posted at this address with a ne
 
 ## Contact
 
-Questions: [CONTACT EMAIL]
+Questions: projectvanguard.sg@gmail.com

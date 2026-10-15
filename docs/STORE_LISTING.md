@@ -84,7 +84,13 @@ recognizer (on device when supported, otherwise Apple / Google speech service).
   Apple's own recognizer). Final check in Phase 8, see DECISIONS D19
 - Google Play data safety: No data shared. Collection answer for voice (system recognizer,
   processed ephemerally) to be confirmed in Phase 8
-- Privacy policy URL: [URL where docs/PRIVACY.md is hosted]
+- Privacy policy URL: [URL where docs/PRIVACY.md is hosted, owner's domain pending]
+- Support email: projectvanguard.sg@gmail.com
+
+## Screenshot sizes needed
+
+- iPhone 6.9 inch (1320 x 2868) and iPad 13 inch (2064 x 2752)
+- Google Play phone screenshots (at least 2, 16:9 or 9:16)
 
 ## Category and rating
 
