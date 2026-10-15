@@ -7,17 +7,17 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 
 ## Status
 
-| Phase | Deliverable | State |
-|---|---|---|
-| 0 | Project setup, theme, navigation, CI, docs | Done, needs phone check |
-| 1 | Cue engine, camera, recording, save | |
-| 2 | Spatial sensing, subject setup, lens switching | |
-| 3 | Lighting check, scan mode | |
-| 4 | Live feedback | |
-| 5 | Background recognition, scene description | |
-| 6 | Review, sharing, voice commands | |
-| 7 | Onboarding, settings polish, accessibility audit, performance | |
-| 8 | Store readiness | |
+| Phase | Deliverable                                                   | State                   |
+| ----- | ------------------------------------------------------------- | ----------------------- |
+| 0     | Project setup, theme, navigation, CI, docs                    | Done, needs phone check |
+| 1     | Cue engine, camera, recording, save                           |                         |
+| 2     | Spatial sensing, subject setup, lens switching                |                         |
+| 3     | Lighting check, scan mode                                     |                         |
+| 4     | Live feedback                                                 |                         |
+| 5     | Background recognition, scene description                     |                         |
+| 6     | Review, sharing, voice commands                               |                         |
+| 7     | Onboarding, settings polish, accessibility audit, performance |                         |
+| 8     | Store readiness                                               |                         |
 
 ## Requirements
 
@@ -85,15 +85,15 @@ internal testing is set up in Phase 8 once store accounts are connected.
 
 ## Scripts
 
-| Command | What it does |
-|---|---|
-| `npm start` | Start Metro for the development build |
-| `npm run android` / `npm run ios` | Build and run the native app locally |
-| `npm run prebuild` | Regenerate `android/` and `ios/` from `app.json` (they are not committed) |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint + Prettier rules |
-| `npm test` | Jest |
-| `npm run check` | All three, as CI runs them |
+| Command                           | What it does                                                              |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `npm start`                       | Start Metro for the development build                                     |
+| `npm run android` / `npm run ios` | Build and run the native app locally                                      |
+| `npm run prebuild`                | Regenerate `android/` and `ios/` from `app.json` (they are not committed) |
+| `npm run typecheck`               | `tsc --noEmit`                                                            |
+| `npm run lint`                    | ESLint + Prettier rules                                                   |
+| `npm test`                        | Jest                                                                      |
+| `npm run check`                   | All three, as CI runs them                                                |
 
 ## Project structure
 

@@ -2,11 +2,11 @@
 
 ## Names
 
-| Field | Limit | Text |
-|---|---|---|
-| App name | 30 | Lumi |
-| iOS subtitle | 30 | Film yourself without sight |
-| Google Play short description | 80 | Talking camera that guides blind and low vision creators to frame and film |
+| Field                         | Limit | Text                                                                       |
+| ----------------------------- | ----- | -------------------------------------------------------------------------- |
+| App name                      | 30    | Lumi                                                                       |
+| iOS subtitle                  | 30    | Film yourself without sight                                                |
+| Google Play short description | 80    | Talking camera that guides blind and low vision creators to frame and film |
 
 ## Keywords (iOS, 100 characters, comma separated, no spaces)
 

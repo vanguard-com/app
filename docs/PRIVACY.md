@@ -18,12 +18,12 @@ explains what happens to your information when you use Lumi.
 
 ## What Lumi uses on your phone, and why
 
-| Permission | What Lumi does with it |
-|---|---|
-| Camera | Shows and records video, and analyses frames on the phone to guide framing, lighting and background |
-| Microphone | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback |
-| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below |
-| Photo library | Saves your videos to your photos, only when you choose Save |
+| Permission         | What Lumi does with it                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------- |
+| Camera             | Shows and records video, and analyses frames on the phone to guide framing, lighting and background     |
+| Microphone         | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback |
+| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below                    |
+| Photo library      | Saves your videos to your photos, only when you choose Save                                             |
 
 You can turn any permission off in your phone's settings. Lumi tells you which features stop working.
 
