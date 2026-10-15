@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["LumiHardwareButtonsModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.lumihardwarebuttons.LumiHardwareButtonsModule"]
+  }
+}
