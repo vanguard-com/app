@@ -100,6 +100,12 @@ describe('stable tracking', () => {
 
 describe('automatic zoom', () => {
   const big = analyseBox({ x: 0, y: 0, width: 1, height: 1 }, false);
+  it('never reverses direction when the current zoom is above the conservative cap', () => {
+    const small = analyseBox({ x: 0.45, y: 0.45, width: 0.1, height: 0.1 }, false);
+    const z = new AutoZoom();
+    z.update(small, 0, 4, { min: 1, max: 10 }, true, true);
+    expect(z.update(small, 1200, 4, { min: 1, max: 10 }, true, true)).toBeNull();
+  });
   it('requires dwell, obeys cooldown, and clamps to actual controller limits', () => {
     const z = new AutoZoom();
     expect(z.update(big, 0, 2, { min: 1, max: 4 }, true, true)).toBeNull();

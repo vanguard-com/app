@@ -193,11 +193,7 @@ export function useFraming(
         text: t.states[current.state],
         earcon: current.state === 'good' ? 'chime' : undefined,
         haptic:
-          current.state === 'good'
-            ? 'single'
-            : current.status === 'problem'
-              ? 'double'
-              : undefined,
+          current.state === 'good' ? 'single' : current.status === 'problem' ? 'double' : undefined,
         silentUntilChange: current.state === 'good',
         maxWaitMs: 900,
       });

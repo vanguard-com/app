@@ -214,7 +214,7 @@ export class AutoZoom {
     const next = clamp(
       zoom * (direction === 'out' ? 0.85 : 1.1),
       limits.min,
-      Math.min(limits.max, limits.min * 3),
+      direction === 'in' ? Math.min(limits.max, Math.max(zoom, limits.min * 3)) : limits.max,
     );
     if (Math.abs(next - zoom) < 0.01) return null;
     this.lastChange = now;
