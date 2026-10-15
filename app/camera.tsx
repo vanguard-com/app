@@ -342,17 +342,19 @@ export default function CameraScreen() {
         </View>
       ) : null}
 
-      {cameraAllowed ? <View style={[styles.corner, styles.layerControls, { top: edge.top, right: edge.right }]}>
-        <AccessibleButton
-          scheme="dark"
-          label={t.flip.label}
-          hint={t.flip.hint}
-          icon="⟲"
-          text=""
-          onPress={flip}
-          testID="camera-flip"
-        />
-      </View> : null}
+      {cameraAllowed ? (
+        <View style={[styles.corner, styles.layerControls, { top: edge.top, right: edge.right }]}>
+          <AccessibleButton
+            scheme="dark"
+            label={t.flip.label}
+            hint={t.flip.hint}
+            icon="⟲"
+            text=""
+            onPress={flip}
+            testID="camera-flip"
+          />
+        </View>
+      ) : null}
 
       {/* Centre: full screen camera area. Single tap speaks current status. */}
       <Pressable
@@ -395,7 +397,24 @@ export default function CameraScreen() {
       ) : null}
 
       <StatusBorder status={screenLive && cameraReady ? framing.result.status : null} />
-      {debugOverlay && framing.result.box ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: 'absolute', zIndex: 2, left: framing.result.box.x * previewSize.width, top: framing.result.box.y * previewSize.height, width: framing.result.box.width * previewSize.width, height: framing.result.box.height * previewSize.height, borderColor: colors.adjust, borderWidth: 2, borderStyle: 'dashed' }} /> : null}
+      {debugOverlay && framing.result.box ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            position: 'absolute',
+            zIndex: 2,
+            left: framing.result.box.x * previewSize.width,
+            top: framing.result.box.y * previewSize.height,
+            width: framing.result.box.width * previewSize.width,
+            height: framing.result.box.height * previewSize.height,
+            borderColor: colors.adjust,
+            borderWidth: 2,
+            borderStyle: 'dashed',
+          }}
+        />
+      ) : null}
       {cameraReady ? (
         <View
           pointerEvents="none"

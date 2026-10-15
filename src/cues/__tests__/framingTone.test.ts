@@ -35,4 +35,14 @@ describe('framing tone audio policy', () => {
     expect(adapters.playTone).not.toHaveBeenCalled();
     engine.dispose();
   });
+  it('stops framing speech when leaving the camera without interrupting system messages', () => {
+    const { engine, adapters } = setup();
+    engine.say({ id: 'framing.left', category: 'framing', text: 'Move phone left.' });
+    engine.clearCategory('framing');
+    expect(adapters.speech.stop).toHaveBeenCalledTimes(1);
+    engine.say({ id: 'sys.saved', category: 'system', text: 'Saved.' });
+    engine.clearCategory('framing');
+    expect(adapters.speech.stop).toHaveBeenCalledTimes(1);
+    engine.dispose();
+  });
 });

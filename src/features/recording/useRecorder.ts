@@ -96,6 +96,9 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
           try {
             const uri = keepRecording(path);
             const info: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
+            // Capture is finished. Release the mic and recording cue policy before explaining
+            // Photos permission, while keeping the UI busy until saving completes.
+            reset();
             setPhase('stopping');
             info.autoSaveResult = await saveToPhotos(uri);
             info.savedToPhotos = info.autoSaveResult === 'saved';

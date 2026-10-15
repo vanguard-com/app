@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { CameraRef } from 'react-native-vision-camera';
 import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
 
@@ -45,57 +53,56 @@ export function useFraming(
     setResult(next);
   }, []);
 
-  const onFaces =
-    (faces: Face[]) => {
-      const current = live.current;
-      const view = camera.current;
-      const now = Date.now();
-      if (!current.active || !view?.preview || now - lastProcessed.current < ANALYSIS_INTERVAL_MS)
-        return;
-      lastProcessed.current = now;
-      try {
-        const targets: Target[] = [];
-        for (const face of faces) {
-          const box = previewBox(face.bounds, current.size, (p) =>
-            view.convertCameraPointToViewPoint(p),
-          );
-          if (box) targets.push({ box, id: face.trackingId });
-        }
-        failure.current = false;
-        const next = tracker.current.update(targets, now, facing === 'front', current.safeZone);
-        publish(next);
-        metrics.current.count++;
-        if (now - metrics.current.start >= 1000) {
-          setFps((metrics.current.count * 1000) / (now - metrics.current.start));
-          metrics.current = { start: now, count: 0 };
-        }
-        const controller = view.controller;
-        if (controller) {
-          const nextZoom = zoom.current.update(
-            next,
-            now,
-            controller.zoom,
-            { min: controller.minZoom, max: controller.maxZoom },
-            current.autoLens,
-            useSession.getState().recordingPhase === 'idle',
-          );
-          if (nextZoom !== null) {
-            const widening = nextZoom < controller.zoom;
-            // Stay on the same device. Virtual devices may switch physical lenses automatically.
-            view.startZoomAnimation(nextZoom, 0.5);
-            cues.say({
-              id: widening ? 'framing.zoomOut' : 'framing.zoomIn',
-              category: 'framing',
-              text: widening ? t.widening : t.zooming,
-              maxWaitMs: 800,
-            });
-          }
-        }
-      } catch (error) {
-        // Mapping can briefly fail while rotating/reconfiguring; the watchdog invalidates stale results.
-        console.warn('Framing update failed', error);
+  const onFaces = (faces: Face[]) => {
+    const current = live.current;
+    const view = camera.current;
+    const now = Date.now();
+    if (!current.active || !view?.preview || now - lastProcessed.current < ANALYSIS_INTERVAL_MS)
+      return;
+    lastProcessed.current = now;
+    try {
+      const targets: Target[] = [];
+      for (const face of faces) {
+        const box = previewBox(face.bounds, current.size, (p) =>
+          view.convertCameraPointToViewPoint(p),
+        );
+        if (box) targets.push({ box, id: face.trackingId });
       }
-    };
+      failure.current = false;
+      const next = tracker.current.update(targets, now, facing === 'front', current.safeZone);
+      publish(next);
+      metrics.current.count++;
+      if (now - metrics.current.start >= 1000) {
+        setFps((metrics.current.count * 1000) / (now - metrics.current.start));
+        metrics.current = { start: now, count: 0 };
+      }
+      const controller = view.controller;
+      if (controller) {
+        const nextZoom = zoom.current.update(
+          next,
+          now,
+          controller.zoom,
+          { min: controller.minZoom, max: controller.maxZoom },
+          current.autoLens,
+          useSession.getState().recordingPhase === 'idle',
+        );
+        if (nextZoom !== null) {
+          const widening = nextZoom < controller.zoom;
+          // Stay on the same device. Virtual devices may switch physical lenses automatically.
+          view.startZoomAnimation(nextZoom, 0.5);
+          cues.say({
+            id: widening ? 'framing.zoomOut' : 'framing.zoomIn',
+            category: 'framing',
+            text: widening ? t.widening : t.zooming,
+            maxWaitMs: 800,
+          });
+        }
+      }
+    } catch (error) {
+      // Mapping can briefly fail while rotating/reconfiguring; the watchdog invalidates stale results.
+      console.warn('Framing update failed', error);
+    }
+  };
 
   const onFacesRef = useRef(onFaces);
   useLayoutEffect(() => {
@@ -178,27 +185,30 @@ export function useFraming(
   useEffect(() => {
     if (!active) return;
     // Delay initial searching cue; normal detector warm-up should be quiet.
-    const id = setTimeout(
-      () => {
-        const current = latest.current;
-        cues.say({
-          id: `framing.${current.state}.${current.status}`,
-          category: 'framing',
-          text: t.states[current.state],
-          earcon: current.state === 'good' ? 'chime' : undefined,
-          haptic:
-            current.state === 'good'
-              ? 'single'
-              : current.status === 'problem'
-                ? 'double'
-                : undefined,
-          silentUntilChange: true,
-          maxWaitMs: 900,
-        });
-      },
-      result.state === 'searching' ? 1000 : 0,
-    );
-    return () => clearTimeout(id);
+    const send = () => {
+      const current = latest.current;
+      cues.say({
+        id: `framing.${current.state}.${current.status}`,
+        category: 'framing',
+        text: t.states[current.state],
+        earcon: current.state === 'good' ? 'chime' : undefined,
+        haptic:
+          current.state === 'good'
+            ? 'single'
+            : current.status === 'problem'
+              ? 'double'
+              : undefined,
+        silentUntilChange: current.state === 'good',
+        maxWaitMs: 900,
+      });
+    };
+    const id = setTimeout(send, result.state === 'searching' ? 1000 : 0);
+    // Refresh dropped requests; the engine still enforces its ten-second repeat rule.
+    const refresh = setInterval(send, 1000);
+    return () => {
+      clearTimeout(id);
+      clearInterval(refresh);
+    };
   }, [active, result.state, result.status]);
 
   return { output, result, fps, statusText: t.states[result.state] };
