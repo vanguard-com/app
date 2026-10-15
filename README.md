@@ -10,7 +10,7 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 | Phase | Deliverable                                                   | State                   |
 | ----- | ------------------------------------------------------------- | ----------------------- |
 | 0     | Project setup, theme, navigation, CI, docs                    | Done, needs phone check |
-| 1     | Cue engine, camera, recording, save                           |                         |
+| 1     | Cue engine, camera, recording, save                           | Done, needs phone check |
 | 2     | Spatial sensing, subject setup, lens switching                |                         |
 | 3     | Lighting check, scan mode                                     |                         |
 | 4     | Live feedback                                                 |                         |
@@ -130,6 +130,16 @@ internal testing is set up in Phase 8 once store accounts are connected.
 | `npm test`                        | Jest                                                                      |
 | `npm run check`                   | All three, as CI runs them                                                |
 
+## Native code
+
+Lumi has one small native module of its own, `modules/lumi-hardware-buttons` (volume button
+presses, see docs/DECISIONS.md D23). Expo links it automatically. After pulling changes that add
+native code, rebuild the app (`npx expo run:ios --device` / `npx expo run:android --device`, or
+install the new APK); `npm start` alone is not enough.
+
+CI compiles both native apps on every pull request (`.github/workflows/android-apk.yml` and
+`ios-build.yml`), so native build errors show up before anyone builds on a phone.
+
 ## Project structure
 
 ```
@@ -141,7 +151,9 @@ app/                    Expo Router screens
   settings/             Settings, one file per group
 src/
   features/             framing, lighting, feedback, background, sharing
-  cues/                 Cue engine (priority queue, TTS, tones, haptics)
+  cues/                 Cue engine (priority queue, rate limit, speech, earcons, haptics)
+  audio/                Shared iOS audio session setup
+  hooks/                App state and volume button hooks
   theme/                Design tokens (only place colours may be written) and contrast math
   components/           Accessible buttons, rows, header, status border
   store/                Zustand stores (settings persisted in MMKV)
@@ -149,6 +161,7 @@ src/
   utils/                Accessibility helpers, time formatting
 assets/models/          Bundled TFLite models (GGUF models download at runtime)
 docs/                   DECISIONS, TESTING, PRIVACY, STORE_LISTING
+modules/                Lumi's own native module (volume buttons)
 scripts/                Icon generator
 ```
 
