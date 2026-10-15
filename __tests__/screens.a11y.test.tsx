@@ -8,7 +8,7 @@ const INTERACTIVE_ROLES = ['button', 'switch', 'adjustable', 'link'] as const;
 // not counting the Back button.
 const SCREENS: { url: string; maxControls: number; minControls?: number }[] = [
   { url: '/welcome', maxControls: 4 },
-  { url: '/camera', maxControls: 6 },
+  { url: '/camera', maxControls: 4 },
   { url: '/subject', maxControls: 4 },
   { url: '/review', maxControls: 4 },
   { url: '/settings', maxControls: 4 },
@@ -69,3 +69,4 @@ describe('first launch', () => {
     await act(async () => {});
   });
 });
+

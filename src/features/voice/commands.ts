@@ -104,5 +104,7 @@ export const COMMAND_HINTS = [
   'describe my background',
   'feedback on',
   'feedback off',
-  'help',
+  'Lumi help',
+  'focus on my face',
 ];
+

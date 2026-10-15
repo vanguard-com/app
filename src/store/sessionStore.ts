@@ -23,6 +23,7 @@ export interface RecordingInfo {
   durationMs: number;
   hasAudio: boolean;
   savedToPhotos: boolean;
+  autoSaveResult?: 'saved' | 'denied' | 'failed';
 }
 
 interface SessionState {
@@ -68,3 +69,4 @@ export const useSession = create<SessionState>()((set) => ({
       s.lastRecording ? { lastRecording: { ...s.lastRecording, savedToPhotos: true } } : s,
     ),
 }));
+

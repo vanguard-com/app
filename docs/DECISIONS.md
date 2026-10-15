@@ -279,3 +279,17 @@ Support and privacy contact: projectvanguard.sg@gmail.com. Privacy policy URL is
 
 - Direct YouTube upload with the YouTube Data API. Needs Google OAuth app verification, so v1 uses
   the system share sheet, which already reaches YouTube, TikTok, Instagram and WhatsApp.
+
+
+
+### D31. Phase 2 is face-first
+
+Whole-body and object tracking are deferred. Subject setup offers only working face detection. Camera has four controls; settings moved into subject setup. See PHASE_2.md for detector, coordinate and zoom decisions.
+
+### D32. Automatic Photos saving
+
+Every completed recording attempts an add-only Photos save. Denial/failure preserves the local recording for Review retry. Retake does not delete a saved Photos copy.
+
+### D33. Phase 2 validation and merge
+
+Use a separate phase branch and PR APK artifact. Keep the PR unmerged until the owner confirms phone tests. ML Kit iOS compilation uses an unsigned device target, since arm64 simulator binaries are unavailable upstream.

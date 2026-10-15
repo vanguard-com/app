@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    name: Compile for iOS simulator
+    name: Compile for iOS device (unsigned)
     runs-on: macos-latest
     timeout-minutes: 90
     steps:
@@ -45,8 +45,8 @@ jobs:
             -workspace Lumi.xcworkspace \
             -scheme Lumi \
             -configuration Debug \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
             build > build.log 2>&1 || {
@@ -62,3 +62,4 @@ jobs:
           name: ios-build-log
           path: ios/build.log
           retention-days: 7
+

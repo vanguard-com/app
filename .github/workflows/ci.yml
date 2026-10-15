@@ -24,6 +24,11 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Check formatting and print repair patch
+        run: |
+          npx prettier --write app src scripts __tests__ jest.setup.tsx package.json .github/workflows docs
+          git diff
+
       - name: Typecheck
         run: npx tsc --noEmit
 
@@ -33,6 +38,10 @@ jobs:
       - name: Test
         run: npx jest --ci
 
+      - name: Require committed formatting
+        run: git diff --exit-code
+
       # Catches Metro resolution errors that tsc cannot see. No native build needed.
       - name: Bundle check (Android + iOS JS)
         run: npx expo export --platform android --platform ios --output-dir dist
+

@@ -1,6 +1,9 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library/legacy';
 
+import { speakAndWait } from '@/cues';
+import { strings } from '@/i18n';
+
 // Recordings live in the app's documents folder until saved to Photos or retaken.
 const RECORDINGS_DIR = 'recordings';
 
@@ -33,13 +36,14 @@ export type SaveResult = 'saved' | 'denied' | 'failed';
 
 /** Save to the phone's photo library. Asks for add-only access the first time. */
 export async function saveToPhotos(uri: string): Promise<SaveResult> {
+  try {
   const current = await MediaLibrary.getPermissionsAsync(true);
+  if (!current.granted && current.canAskAgain) await speakAndWait(strings.permissions.photos.explain, 'perm.photos.explain');
   const permission =
     current.granted || !current.canAskAgain
       ? current
       : await MediaLibrary.requestPermissionsAsync(true);
   if (!permission.granted) return 'denied';
-  try {
     await MediaLibrary.saveToLibraryAsync(uri);
     return 'saved';
   } catch (error) {
@@ -47,3 +51,4 @@ export async function saveToPhotos(uri: string): Promise<SaveResult> {
     return 'failed';
   }
 }
+

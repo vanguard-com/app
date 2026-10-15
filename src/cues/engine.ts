@@ -19,6 +19,7 @@ export interface CueAdapters {
   announce(text: string): void;
   playEarcon(earcon: Earcon, volume: number): void;
   playHaptic(pattern: HapticPattern): void;
+  playTone?(options: { frequency: number; pan: number; durationS: number; volume: number }): void;
 }
 
 export interface EngineState extends ChannelInputs {
@@ -70,6 +71,18 @@ export class CueEngine {
 
   getState(): EngineState {
     return this.state;
+  }
+
+  /** Short framing beep, admitted by the same channel policy and audio lock as queued cues. */
+  guideTone(options: { frequency: number; pan: number; durationS: number }): boolean {
+    if (!channelPolicy(this.state).tones || this.isAudioBusy() || this.scheduler.pendingCount > 0 || !this.adapters.playTone) return false;
+    this.adapters.playTone({ ...options, volume: this.state.cueVolume * 0.35 });
+    this.audioBusyUntil = this.now() + options.durationS * 1000 + 20;
+    return true;
+  }
+
+  clearCategory(category: Cue['category']): void {
+    this.scheduler.clear(category);
   }
 
   /** Request a cue. Returns false if the repeat rule dropped it. */
@@ -225,3 +238,4 @@ function once(fn: (() => void) | undefined): () => void {
     fn();
   };
 }
+
