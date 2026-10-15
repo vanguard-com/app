@@ -141,4 +141,3 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
     [outputs, onConfigured, start, stop],
   );
 }
-

@@ -69,4 +69,3 @@ describe('first launch', () => {
     await act(async () => {});
   });
 });
-

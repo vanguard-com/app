@@ -75,7 +75,13 @@ export class CueEngine {
 
   /** Short framing beep, admitted by the same channel policy and audio lock as queued cues. */
   guideTone(options: { frequency: number; pan: number; durationS: number }): boolean {
-    if (!channelPolicy(this.state).tones || this.isAudioBusy() || this.scheduler.pendingCount > 0 || !this.adapters.playTone) return false;
+    if (
+      !channelPolicy(this.state).tones ||
+      this.isAudioBusy() ||
+      this.scheduler.pendingCount > 0 ||
+      !this.adapters.playTone
+    )
+      return false;
     this.adapters.playTone({ ...options, volume: this.state.cueVolume * 0.35 });
     this.audioBusyUntil = this.now() + options.durationS * 1000 + 20;
     return true;
@@ -238,4 +244,3 @@ function once(fn: (() => void) | undefined): () => void {
     fn();
   };
 }
-

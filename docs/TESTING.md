@@ -185,8 +185,6 @@ review, save, share to YouTube. Record every point where sighted help was needed
 | ---- | ----- | --- | ------ | ------- | ------ | ------ | ----- |
 |      |       |     |        |         |        |        |       |
 
-
-
 ## Phase 2 phone test (required before merge)
 
 1. Install the APK artifact from the Phase 2 PR run, not the shared main release. Confirm the tested commit SHA.

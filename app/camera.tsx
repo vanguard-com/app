@@ -42,7 +42,10 @@ export default function CameraScreen() {
   const mode = useSession((s) => s.mode);
   const setMode = useSession((s) => s.setMode);
   const facing = useSession((s) => s.facing);
-  const device = useCameraDevice(facing, facing === 'back' ? { physicalDevices: ['wide-angle', 'ultra-wide-angle'] } : undefined);
+  const device = useCameraDevice(
+    facing,
+    facing === 'back' ? { physicalDevices: ['wide-angle', 'ultra-wide-angle'] } : undefined,
+  );
   const cameraRef = useRef<CameraRef>(null);
   const initializedDevice = useRef<string | null>(null);
   const [previewSize, setPreviewSize] = useState({ width: 0, height: 0 });
@@ -61,11 +64,18 @@ export default function CameraScreen() {
   const [cameraReady, setCameraReady] = useState(false);
   const isRecording = phase === 'recording';
   const volumeButton = isHardwareButtonSupported();
-  const debugOverlay = useSettings(s => s.debugOverlay);
+  const debugOverlay = useSettings((s) => s.debugOverlay);
   const screenLive = isFocused && appActive;
-  const framing = useFraming(cameraRef, facing, screenLive && cameraAllowed && cameraReady && subject.kind === 'face', previewSize);
+  const framing = useFraming(
+    cameraRef,
+    facing,
+    screenLive && cameraAllowed && cameraReady && subject.kind === 'face',
+    previewSize,
+  );
 
-  useEffect(() => { setMode('framing'); }, [setMode]);
+  useEffect(() => {
+    setMode('framing');
+  }, [setMode]);
 
   useScreenAnnouncement(t.screenAnnouncement);
   const elapsed = useElapsed(startedAt);
@@ -136,6 +146,7 @@ export default function CameraScreen() {
         cues.say({ id: 'sys.notReady', category: 'system', text: t.status.notReady, force: true });
         return;
       }
+      cameraRef.current?.cancelZoomAnimation();
       recorder.start();
     }
   }, [cameraReady, recorder]);
@@ -146,6 +157,7 @@ export default function CameraScreen() {
       return;
     }
     const next = useSession.getState().facing === 'front' ? 'back' : 'front';
+    setCameraReady(false);
     setFacing(next);
     cues.say({ id: `sys.facing.${next}`, category: 'system', text: t.facing[next], force: true });
   }, [setFacing]);
@@ -156,7 +168,12 @@ export default function CameraScreen() {
       : cameraReady
         ? t.status.idle(t.facing[facing], t.modes[mode], subjectLabel(subject).toLowerCase())
         : t.status.notReady;
-    cues.say({ id: 'sys.status', category: 'system', text: `${text} ${framing.statusText}`, force: true });
+    cues.say({
+      id: 'sys.status',
+      category: 'system',
+      text: `${text} ${framing.statusText}`,
+      force: true,
+    });
   };
 
   const onCommand = useCallback(
@@ -175,9 +192,19 @@ export default function CameraScreen() {
         case 'focusOn':
           if (/^(my )?face$/.test(command.subject)) {
             useSession.getState().setSubject({ kind: 'face' });
-            cues.say({ id: 'sys.faceSelected', category: 'system', text: strings.subject.selected(strings.subject.options.face), force: true });
+            cues.say({
+              id: 'sys.faceSelected',
+              category: 'system',
+              text: strings.subject.selected(strings.subject.options.face),
+              force: true,
+            });
           } else {
-            cues.say({ id: 'sys.faceOnly', category: 'system', text: strings.subject.faceOnly, force: true });
+            cues.say({
+              id: 'sys.faceOnly',
+              category: 'system',
+              text: strings.subject.faceOnly,
+              force: true,
+            });
           }
           return;
         case 'help':
@@ -190,7 +217,10 @@ export default function CameraScreen() {
     [flip, toggleRecording],
   );
 
-  const outputs = useMemo(() => subject.kind === 'face' ? [...recorder.outputs, framing.output] : recorder.outputs, [recorder.outputs, framing.output, subject.kind]);
+  const outputs = useMemo(
+    () => (subject.kind === 'face' ? [...recorder.outputs, framing.output] : recorder.outputs),
+    [recorder.outputs, framing.output, subject.kind],
+  );
   useHardwareButton(screenLive && cameraReady, toggleRecording);
   useVoiceCommands(
     screenLive &&
@@ -251,7 +281,7 @@ export default function CameraScreen() {
           mirrorMode="auto"
           isActive={screenLive}
           outputs={outputs}
-          onLayout={event => setPreviewSize(event.nativeEvent.layout)}
+          onLayout={(event) => setPreviewSize(event.nativeEvent.layout)}
           onConfigured={recorder.onConfigured}
           onStarted={() => {
             setCameraReady(true);
@@ -261,8 +291,16 @@ export default function CameraScreen() {
               initializedDevice.current = device.id;
               const factor = controller.displayableZoomFactor;
               if (Number.isFinite(factor) && factor > 0) {
-                try { controller.setZoom(Math.max(controller.minZoom, Math.min(controller.maxZoom, controller.zoom / factor))); }
-                catch (error) { console.warn('Could not initialize zoom', error); }
+                try {
+                  controller.setZoom(
+                    Math.max(
+                      controller.minZoom,
+                      Math.min(controller.maxZoom, controller.zoom / factor),
+                    ),
+                  );
+                } catch (error) {
+                  console.warn('Could not initialize zoom', error);
+                }
               }
             }
           }}
@@ -304,7 +342,7 @@ export default function CameraScreen() {
         </View>
       ) : null}
 
-      <View style={[styles.corner, styles.layerControls, { top: edge.top, right: edge.right }]}>
+      {cameraAllowed ? <View style={[styles.corner, styles.layerControls, { top: edge.top, right: edge.right }]}>
         <AccessibleButton
           scheme="dark"
           label={t.flip.label}
@@ -314,7 +352,7 @@ export default function CameraScreen() {
           onPress={flip}
           testID="camera-flip"
         />
-      </View>
+      </View> : null}
 
       {/* Centre: full screen camera area. Single tap speaks current status. */}
       <Pressable
@@ -357,12 +395,27 @@ export default function CameraScreen() {
       ) : null}
 
       <StatusBorder status={screenLive && cameraReady ? framing.result.status : null} />
+      {debugOverlay && framing.result.box ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: 'absolute', zIndex: 2, left: framing.result.box.x * previewSize.width, top: framing.result.box.y * previewSize.height, width: framing.result.box.width * previewSize.width, height: framing.result.box.height * previewSize.height, borderColor: colors.adjust, borderWidth: 2, borderStyle: 'dashed' }} /> : null}
       {cameraReady ? (
-        <View pointerEvents="none" style={[styles.guidance, { backgroundColor: colors.surfaceOverlay, top: edge.top + 80 }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View
+          pointerEvents="none"
+          style={[styles.guidance, { backgroundColor: colors.surfaceOverlay, top: edge.top + 80 }]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           <Text style={[typography.status, { color: colors.textPrimary }]}>
-            {framing.result.state === 'good' ? '✓ ' : framing.result.status === 'problem' ? '! ' : '↔ '}{framing.statusText}
+            {framing.result.state === 'good'
+              ? '✓ '
+              : framing.result.status === 'problem'
+                ? '! '
+                : '↔ '}
+            {framing.statusText}
           </Text>
-          {debugOverlay ? <Text style={[typography.body, { color: colors.textSecondary }]}>{strings.framing.debug(framing.fps, framing.result.box)}</Text> : null}
+          {debugOverlay ? (
+            <Text style={[typography.body, { color: colors.textSecondary }]}>
+              {strings.framing.debug(framing.fps, framing.result.box)}
+            </Text>
+          ) : null}
         </View>
       ) : null}
 
@@ -442,4 +495,3 @@ const styles = StyleSheet.create({
   layerControls: { zIndex: 2 },
   guidance: { position: 'absolute', left: 24, right: 24, padding: 16, borderRadius: 16, zIndex: 2 },
 });
-

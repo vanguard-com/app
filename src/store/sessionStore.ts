@@ -69,4 +69,3 @@ export const useSession = create<SessionState>()((set) => ({
       s.lastRecording ? { lastRecording: { ...s.lastRecording, savedToPhotos: true } } : s,
     ),
 }));
-

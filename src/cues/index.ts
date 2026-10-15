@@ -33,4 +33,3 @@ export function speakAndWait(text: string, id = `wait.${text}`): Promise<void> {
     setTimeout(finish, Math.max(4000, text.length * 120));
   });
 }
-

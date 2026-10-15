@@ -1,6 +1,12 @@
 // Dependency-free smoke checks for constrained environments; full cases run in Jest/CI.
+/* eslint-disable no-console -- This command-line check reports its result to the developer. */
 const assert = require('node:assert/strict');
-const { analyseBox, previewBox, FramingTracker, AutoZoom } = require('../src/features/framing/model.ts');
+const {
+  analyseBox,
+  previewBox,
+  FramingTracker,
+  AutoZoom,
+} = require('../src/features/framing/model.ts');
 const center = { x: 0.35, y: 0.3, width: 0.3, height: 0.4 };
 assert.equal(analyseBox(center, false).state, 'good');
 for (const mirrored of [false, true]) {
@@ -10,7 +16,11 @@ for (const mirrored of [false, true]) {
   assert.equal(analyseBox({ ...center, y: 0.02 }, mirrored).state, 'up');
   assert.equal(analyseBox({ ...center, y: 0.7 }, mirrored).state, 'down');
 }
-const box = previewBox({ x: 10, y: 20, width: 30, height: 40 }, { width: 100, height: 200 }, p => ({ x: 100 - p.y, y: p.x }));
+const box = previewBox(
+  { x: 10, y: 20, width: 30, height: 40 },
+  { width: 100, height: 200 },
+  (p) => ({ x: 100 - p.y, y: p.x }),
+);
 assert.equal(box.x, 0.4);
 assert.equal(box.y, 0.05);
 assert.ok(Math.abs(box.height - 0.15) < 1e-12);

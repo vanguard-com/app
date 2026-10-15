@@ -62,4 +62,3 @@ jobs:
           name: ios-build-log
           path: ios/build.log
           retention-days: 7
-

@@ -1,4 +1,12 @@
-import { analyseBox, AutoZoom, chooseTarget, FramingTracker, previewBox, smoothBox, validBox } from '../model';
+import {
+  analyseBox,
+  AutoZoom,
+  chooseTarget,
+  FramingTracker,
+  previewBox,
+  smoothBox,
+  validBox,
+} from '../model';
 
 const centered = { x: 0.35, y: 0.3, width: 0.3, height: 0.4 };
 
@@ -14,7 +22,7 @@ describe('framing geometry', () => {
     expect(analyseBox({ ...centered, x: 0.02 }, false).state).toBe('left');
     expect(analyseBox({ x: 0.1, y: 0.1, width: 0.8, height: 0.8 }, false).state).toBe('good');
   });
-  it.each([false, true])('corrects phone directions for mirroring=%s', mirrored => {
+  it.each([false, true])('corrects phone directions for mirroring=%s', (mirrored) => {
     const r = analyseBox({ ...centered, x: 0.75 }, mirrored);
     expect(r.state).toBe(mirrored ? 'left' : 'right');
     expect(Math.sign(r.pan)).toBe(mirrored ? -1 : 1);
@@ -24,7 +32,9 @@ describe('framing geometry', () => {
   it('uses high pitch for up, low for down and faster beeps nearer centre', () => {
     expect(analyseBox({ ...centered, y: 0 }, false).frequency).toBeGreaterThan(440);
     expect(analyseBox({ ...centered, y: 0.7 }, false).frequency).toBeLessThan(440);
-    expect(analyseBox({ ...centered, x: 0.2 }, false).intervalMs).toBeLessThan(analyseBox({ ...centered, x: -0.2 }, false).intervalMs);
+    expect(analyseBox({ ...centered, x: 0.2 }, false).intervalMs).toBeLessThan(
+      analyseBox({ ...centered, x: -0.2 }, false).intervalMs,
+    );
   });
   it('reports every clipped edge without clamping the evidence', () => {
     const r = analyseBox({ x: -0.1, y: -0.1, width: 1.2, height: 1.2 }, false);
@@ -42,13 +52,21 @@ describe('framing geometry', () => {
     expect(analyseBox(b, false, 0.8, false).state).toBe('left');
   });
   it('maps all corners for rotated/cropped previews and preserves out-of-frame edges', () => {
-    const mapped = previewBox({ x: 10, y: 20, width: 30, height: 40 }, { width: 100, height: 200 }, p => ({ x: 100 - p.y, y: p.x }));
+    const mapped = previewBox(
+      { x: 10, y: 20, width: 30, height: 40 },
+      { width: 100, height: 200 },
+      (p) => ({ x: 100 - p.y, y: p.x }),
+    );
     expect(mapped?.x).toBeCloseTo(0.4);
     expect(mapped?.y).toBeCloseTo(0.05);
     expect(mapped?.width).toBeCloseTo(0.4);
     expect(mapped?.height).toBeCloseTo(0.15);
-    expect(previewBox(centered, { width: 0, height: 0 }, p => p)).toBeNull();
-    const b = previewBox({ x: -10, y: 20, width: 30, height: 40 }, { width: 100, height: 100 }, p => p);
+    expect(previewBox(centered, { width: 0, height: 0 }, (p) => p)).toBeNull();
+    const b = previewBox(
+      { x: -10, y: 20, width: 30, height: 40 },
+      { width: 100, height: 100 },
+      (p) => p,
+    );
     expect(b?.x).toBe(-0.1);
   });
 });
@@ -90,7 +108,10 @@ describe('automatic zoom', () => {
     expect(z.update(big, 4000, 1.7, { min: 1, max: 4 }, true, true)).toBeNull();
     expect(z.update(big, 4200, 1.05, { min: 1, max: 4 }, true, true)).toBe(1);
   });
-  it.each([[false, true], [true, false]])('does nothing when enabled=%s idle=%s', (enabled, idle) => {
+  it.each([
+    [false, true],
+    [true, false],
+  ])('does nothing when enabled=%s idle=%s', (enabled, idle) => {
     const z = new AutoZoom();
     z.update(big, 0, 2, { min: 1, max: 4 }, enabled, idle);
     expect(z.update(big, 5000, 2, { min: 1, max: 4 }, enabled, idle)).toBeNull();

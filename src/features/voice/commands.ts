@@ -107,4 +107,3 @@ export const COMMAND_HINTS = [
   'Lumi help',
   'focus on my face',
 ];
-

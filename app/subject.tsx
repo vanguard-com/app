@@ -42,10 +42,18 @@ export default function SubjectScreen() {
           testID={`subject-${option.kind}`}
         />
       ))}
-      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>{t.faceOnly}</Text>
-      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>{t.guidanceHelp}</Text>
-      <AccessibleButton label={strings.camera.settings.label} hint={strings.camera.settings.hint} onPress={() => router.push('/settings')} testID="subject-settings" />
+      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
+        {t.faceOnly}
+      </Text>
+      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
+        {t.guidanceHelp}
+      </Text>
+      <AccessibleButton
+        label={strings.camera.settings.label}
+        hint={strings.camera.settings.hint}
+        onPress={() => router.push('/settings')}
+        testID="subject-settings"
+      />
     </Screen>
   );
 }
-
