@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Lumi",
+    "slug": "lumi",
+    "scheme": "lumi",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0B0B0F",
+    "primaryColor": "#FFC83D",
+    "ios": {
+      "bundleIdentifier": "com.vanguard.lumi",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "deploymentTarget": "16.4",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.vanguard.lumi",
+      "versionCode": 1,
+      "allowBackup": false,
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B0B0F"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 29
+          }
+        }
+      ]
+    ]
+  }
+}
