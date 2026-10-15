@@ -37,6 +37,23 @@ npm run check        # typecheck + lint + tests
 
 ## Run on your phone
 
+### Easiest: Android test APK from GitHub (no computer setup, $0)
+
+Every update merged to `main` is built by GitHub Actions (`.github/workflows/android-apk.yml`) and
+published as a pre-release.
+
+1. On your Android phone, open
+   https://github.com/vanguard-com/app/releases/download/android-latest/lumi-latest.apk
+2. Allow your browser to install unknown apps when Android asks, then tap Install.
+3. Later builds install over the old one (same signing key), settings are kept.
+
+Pull request builds are attached to the "Android APK" workflow run as an artifact (zip) for 14 days.
+
+### iPhone
+
+Apple only allows installing your own builds through Xcode on a Mac (free Apple ID, see below) or
+through TestFlight / EAS, which needs a paid Apple Developer account ($99 per year).
+
 ### Android over USB (no paid account)
 
 1. On the phone: Settings > About phone > tap Build number 7 times, then Developer options > USB
@@ -110,5 +127,6 @@ imports so Jest can test it.
 
 ## Privacy
 
-No accounts, ads, analytics or cloud AI. No video, image or audio leaves the phone. See
-[docs/PRIVACY.md](docs/PRIVACY.md).
+No accounts, ads, analytics or cloud AI. Video and images never leave the phone. Voice commands
+use the phone's own speech recognition, which may use Apple or Google servers when on device
+recognition is not available. See [docs/PRIVACY.md](docs/PRIVACY.md) and decision D19.

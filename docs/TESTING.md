@@ -6,13 +6,16 @@ this script.
 
 ## Before every test session
 
-1. Install the latest development build (see README, "Run on your phone").
-2. Start Metro on your computer: `npm start`. Phone and computer on the same Wi Fi.
-3. Note phone model, OS version, Lumi commit hash (Settings > More > About shows the version).
-4. Test each section twice: once with the screen reader off, once with it on.
+1. Install the latest build (see README, "Run on your phone"):
+   - Android, simplest: open
+     https://github.com/vanguard-com/app/releases/download/android-latest/lumi-latest.apk on the
+     phone and install. No computer needed.
+   - Development build instead: run `npm start` on your computer, phone on the same Wi Fi.
+2. Note phone model, OS version and Lumi build (the release title on GitHub shows the commit).
+3. Test each section twice: once with the screen reader off, once with it on.
    - iOS: Settings > Accessibility > VoiceOver (or triple click side button if shortcut is set)
    - Android: Settings > Accessibility > TalkBack (or hold both volume keys 3 seconds if shortcut is set)
-5. Write results in the table at the end: pass, fail, notes.
+4. Write results in the table at the end: pass, fail, notes.
 
 ## Test environments (from Phase 2 on)
 
