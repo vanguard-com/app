@@ -23,7 +23,6 @@ export interface Framing {
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 export const LOST_MS = 1000;
 export const SETTLE_MS = 250;
-export const ANALYSIS_INTERVAL_MS = 1000 / 12;
 
 export function validBox(b: Box): boolean {
   return [b.x, b.y, b.width, b.height].every(Number.isFinite) && b.width > 0 && b.height > 0;

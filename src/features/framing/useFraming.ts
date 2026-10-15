@@ -15,14 +15,7 @@ import { strings } from '@/i18n';
 import { useSession, type CameraFacing } from '@/store/sessionStore';
 import { useSettings } from '@/store/settingsStore';
 
-import {
-  ANALYSIS_INTERVAL_MS,
-  AutoZoom,
-  FramingTracker,
-  previewBox,
-  type Framing,
-  type Target,
-} from './model';
+import { AutoZoom, FramingTracker, previewBox, type Framing, type Target } from './model';
 
 const t = strings.framing;
 
@@ -42,7 +35,6 @@ export function useFraming(
   useLayoutEffect(() => {
     live.current = { active, size, safeZone, autoLens, facing };
   }, [active, size, safeZone, autoLens, facing]);
-  const lastProcessed = useRef(-Infinity);
   const lastTone = useRef(-Infinity);
   const metrics = useRef({ start: 0, count: 0 });
   const latest = useRef(result);
@@ -57,9 +49,7 @@ export function useFraming(
     const current = live.current;
     const view = camera.current;
     const now = Date.now();
-    if (!current.active || !view?.preview || now - lastProcessed.current < ANALYSIS_INTERVAL_MS)
-      return;
-    lastProcessed.current = now;
+    if (!current.active || !view?.preview) return;
     try {
       const targets: Target[] = [];
       for (const face of faces) {
@@ -143,7 +133,6 @@ export function useFraming(
   useEffect(() => {
     tracker.current = new FramingTracker(Date.now());
     zoom.current = new AutoZoom();
-    lastProcessed.current = -Infinity;
     failure.current = false;
     metrics.current = { start: Date.now(), count: 0 };
     const resetId = setTimeout(() => {
