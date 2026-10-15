@@ -146,12 +146,7 @@ export class FramingTracker {
     this.lastSeen = now;
     this.pendingSince = now;
   }
-  update(
-    targets: Target[],
-    now: number,
-    reverseHorizontal: boolean,
-    safeZone: number,
-  ): Framing {
+  update(targets: Target[], now: number, reverseHorizontal: boolean, safeZone: number): Framing {
     const selected = chooseTarget(targets, this.target);
     if (!selected) return this.tick(now);
     this.lastSeen = now;
