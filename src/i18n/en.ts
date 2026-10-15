@@ -132,7 +132,7 @@ export const en = {
     about: { label: 'About Lumi', hint: 'Version and licences' },
     version: (v: string) => `Version ${v}`,
     aboutBody:
-      'Lumi does all analysis on your phone. No video, image or audio ever leaves your phone. Model licence notices will appear here.',
+      'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Model licence notices will appear here.',
     debugEnabled: 'Debug overlay on',
     debugDisabled: 'Debug overlay off',
   },

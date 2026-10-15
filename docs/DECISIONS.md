@@ -119,11 +119,30 @@ Model files will be stored in the app's documents area and marked "exclude from 
 `ITSAppUsesNonExemptEncryption = false`: Lumi only uses the operating system's HTTPS to download
 model files, which is exempt. This skips the export compliance question on every TestFlight build.
 
+### D19. Speech recognition: on device first, Apple / Google servers as fallback
+Owner decision (2026-10-15), replacing the brief's "no audio leaves the phone" rule for speech
+only: working voice features on every phone matter more than keeping speech on the phone.
+
+- Lumi asks for on device recognition whenever the phone supports it (`supportsOnDeviceRecognition`).
+  On device is faster, works offline and has no time limit.
+- Otherwise the phone's own speech service may send audio to Apple (iPhone) or Google (Android)
+  servers and returns text. Lumi never receives or stores that audio.
+- Cost: none. Both services are free system features with no API key or billing. Apple limits
+  server recognition per device and per app per day, and to about 1 minute of audio per request,
+  so long recordings restart recognition before each minute ends (pace feedback, Phase 4).
+- Android 13+ phones can download an offline English pack (`androidTriggerOfflineModelDownload`);
+  Lumi offers it once so those phones stay on device.
+- iPhone needs the speech recognition permission (server mode). Android only needs microphone.
+- Video, images and camera analysis still never leave the phone.
+- Privacy policy and store listing updated. Store privacy answers get a final check in Phase 8:
+  App Store "Data Not Collected" should still hold because Lumi itself never receives the audio;
+  Google Play's form may need "voice recordings, processed ephemerally".
+
 ## Defaults chosen (change in Settings or tell me to change the default)
 
 | Setting | Default | Reason |
 |---|---|---|
-| Live feedback | Off | Fewer cues while a new user learns framing |
+| Live feedback | Off (confirmed by owner 2026-10-15) | Fewer cues while a new user learns framing; turned on in Settings |
 | Cues during recording | Earphones only | Cues on the loudspeaker would be recorded into the video |
 | Camera | Front | Most users film themselves |
 | Announce recording time | Every 30 seconds | From the brief |
