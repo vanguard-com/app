@@ -8,8 +8,8 @@ import { useSession, type SubjectTarget } from '@/store/sessionStore';
 import { useTheme } from '@/theme';
 import { announce, useScreenAnnouncement } from '@/utils/accessibility';
 
-// Phase 0: pick face or whole body. Voice answers and COCO objects are added in Phase 2.
-const OPTIONS: SubjectTarget[] = [{ kind: 'face' }, { kind: 'person' }];
+// Phase 2 is face-first. Never offer a target the detector cannot track.
+const OPTIONS: SubjectTarget[] = [{ kind: 'face' }];
 
 export default function SubjectScreen() {
   const { colors, typography, spacing } = useTheme();
@@ -42,6 +42,18 @@ export default function SubjectScreen() {
           testID={`subject-${option.kind}`}
         />
       ))}
+      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
+        {t.faceOnly}
+      </Text>
+      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
+        {t.guidanceHelp}
+      </Text>
+      <AccessibleButton
+        label={strings.camera.settings.label}
+        hint={strings.camera.settings.hint}
+        onPress={() => router.push('/settings')}
+        testID="subject-settings"
+      />
     </Screen>
   );
 }

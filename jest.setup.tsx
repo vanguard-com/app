@@ -36,6 +36,7 @@ jest.mock('react-native-vision-camera', () => {
     Camera: (props: object) => <View testID="vision-camera" {...props} />,
     CommonResolutions: { FHD_16_9: { width: 1920, height: 1080 } },
     useVideoOutput: () => output,
+    useCameraDevice: () => ({ id: 'mock-camera', minZoom: 1, maxZoom: 3 }),
     VisionCamera: {
       cameraPermissionStatus: 'authorized',
       microphonePermissionStatus: 'authorized',
@@ -44,6 +45,10 @@ jest.mock('react-native-vision-camera', () => {
     },
   };
 });
+
+jest.mock('react-native-vision-camera-face-detector', () => ({
+  createFaceDetectorOutput: jest.fn(() => ({})),
+}));
 
 jest.mock('expo-speech-recognition', () => ({
   ExpoSpeechRecognitionModule: {

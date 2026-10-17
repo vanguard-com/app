@@ -1,6 +1,6 @@
 import { announce } from '@/utils/announce';
 
-import { playEarcon } from './channels/audio';
+import { playEarcon, playTone } from './channels/audio';
 import { playHaptic } from './channels/haptics';
 import { expoSpeechAdapter } from './channels/speech';
 import { CueEngine } from './engine';
@@ -14,6 +14,7 @@ export const cues = new CueEngine({
   announce,
   playEarcon,
   playHaptic,
+  playTone,
 });
 
 /**

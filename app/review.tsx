@@ -38,7 +38,7 @@ export default function ReviewScreen() {
       cues.say({
         id: `sys.review.${current.uri}`,
         category: 'system',
-        text: `${t.summary(strings.common.duration(current.durationMs / 1000))} ${t.nextSteps}`,
+        text: `${t.summary(strings.common.duration(current.durationMs / 1000))} ${current.savedToPhotos ? t.saved : current.autoSaveResult === 'denied' ? t.saveDenied : current.autoSaveResult === 'failed' ? t.saveFailed : t.nextSteps}`,
       });
     }, []),
   );

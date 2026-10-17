@@ -9,7 +9,7 @@ import {
 import { applyAudioSession } from '@/audio/audioSession';
 import { useSession, type RecordingInfo } from '@/store/sessionStore';
 
-import { keepRecording } from './files';
+import { keepRecording, saveToPhotos } from './files';
 
 // If the camera never confirms the microphone was attached, record anyway after this long.
 const CONFIGURE_TIMEOUT_MS = 4000;
@@ -91,11 +91,17 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
       recorderRef.current = recorder;
       const hasAudio = outputHasAudio.current;
       await recorder.startRecording(
-        (path) => {
+        async (path) => {
           const durationMs = Math.max(0, Date.now() - startedAtRef.current);
           try {
             const uri = keepRecording(path);
             const info: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
+            // Capture is finished. Release the mic and recording cue policy before explaining
+            // Photos permission, while keeping the UI busy until saving completes.
+            reset();
+            setPhase('stopping');
+            info.autoSaveResult = await saveToPhotos(uri);
+            info.savedToPhotos = info.autoSaveResult === 'saved';
             setLastRecording(info);
             reset();
             callbacksRef.current.onFinished(info);

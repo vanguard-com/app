@@ -23,6 +23,7 @@ export interface RecordingInfo {
   durationMs: number;
   hasAudio: boolean;
   savedToPhotos: boolean;
+  autoSaveResult?: 'saved' | 'denied' | 'failed';
 }
 
 interface SessionState {

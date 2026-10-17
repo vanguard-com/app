@@ -89,6 +89,27 @@ export const en = {
     },
     pick: { hint: 'Sets this as the subject to keep in frame' },
     selected: (name: string) => `${name} selected`,
+    faceOnly: 'Face tracking is available now. Whole body and object tracking will come later.',
+    guidanceHelp:
+      'A tone in your left ear means move the phone left; right means move it right. Higher pitch means tilt up; lower pitch means tilt down. Faster beeps mean you are closer to a good position. A chime and vibration mean your face fits inside the safe area. Keep still for a moment after each movement.',
+  },
+
+  framing: {
+    states: {
+      searching: 'Face not found. Slowly move the phone.',
+      unavailable: 'Face guidance is unavailable. You can still record. Try reopening the camera.',
+      good: 'Face in frame.',
+      left: 'Move phone left.',
+      right: 'Move phone right.',
+      up: 'Tilt phone up.',
+      down: 'Tilt phone down.',
+      back: 'Move phone further away.',
+      closer: 'Move phone closer.',
+    },
+    widening: 'Widening the shot.',
+    zooming: 'Zooming in slightly.',
+    debug: (fps: number, box: { x: number; y: number; width: number; height: number } | null) =>
+      `Guidance ${Number(fps).toFixed(1)} updates/s. ${box && typeof box === 'object' ? `Box ${[box.x, box.y, box.width, box.height].map((v) => Number(v).toFixed(2)).join(', ')}` : 'No target'}`,
   },
 
   review: {
@@ -99,7 +120,10 @@ export const en = {
     nextSteps: 'Use Save to keep it in your photos, or Retake for a new one.',
     save: { label: 'Save', hint: 'Saves the video to your photos' },
     savedLabel: 'Saved',
-    retake: { label: 'Retake', hint: 'Deletes this video and returns to the camera' },
+    retake: {
+      label: 'Retake',
+      hint: 'Removes the app copy and returns to the camera. A saved Photos copy is kept.',
+    },
     saving: 'Saving',
     saved: 'Saved to Photos',
     alreadySaved: 'Already saved to Photos',
@@ -110,6 +134,10 @@ export const en = {
   },
 
   permissions: {
+    photos: {
+      explain:
+        'Lumi automatically saves each finished video to your photos. Your phone will now ask for permission to add videos. If you decline, the video stays in Lumi and you can retry saving from Review.',
+    },
     camera: {
       explain: 'Lumi needs the camera to see and record you. Your phone will now ask for access.',
       denied:
@@ -133,7 +161,7 @@ export const en = {
 
   voice: {
     // Spoken only while the recognizer is paused, so these may contain command phrases.
-    help: 'You can say: start recording, stop recording, switch camera, save video, retake video, or help.',
+    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, or Lumi help.',
     notYet: 'That command comes in a later update.',
     unavailable: 'Spoken commands are not available on this phone.',
     whileRecordingOff: 'Spoken commands pause while recording. Press a volume button to stop.',

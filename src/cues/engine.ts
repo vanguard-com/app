@@ -19,6 +19,7 @@ export interface CueAdapters {
   announce(text: string): void;
   playEarcon(earcon: Earcon, volume: number): void;
   playHaptic(pattern: HapticPattern): void;
+  playTone?(options: { frequency: number; pan: number; durationS: number; volume: number }): void;
 }
 
 export interface EngineState extends ChannelInputs {
@@ -52,6 +53,7 @@ export class CueEngine {
   private state: EngineState = DEFAULT_ENGINE_STATE;
   private audioBusyUntil = 0;
   private speaking = false;
+  private activeCategory: Cue['category'] | null = null;
   private pumpTimer: ReturnType<typeof setTimeout> | null = null;
   private speechTimeout: ReturnType<typeof setTimeout> | null = null;
   private delayedSpeech: ReturnType<typeof setTimeout> | null = null;
@@ -70,6 +72,26 @@ export class CueEngine {
 
   getState(): EngineState {
     return this.state;
+  }
+
+  /** Short framing beep, admitted by the same channel policy and audio lock as queued cues. */
+  guideTone(options: { frequency: number; pan: number; durationS: number }): boolean {
+    if (
+      !channelPolicy(this.state).tones ||
+      this.isAudioBusy() ||
+      this.scheduler.pendingCount > 0 ||
+      !this.adapters.playTone
+    )
+      return false;
+    this.adapters.playTone({ ...options, volume: this.state.cueVolume * 0.35 });
+    this.activeCategory = 'framing';
+    this.audioBusyUntil = this.now() + options.durationS * 1000 + 20;
+    return true;
+  }
+
+  clearCategory(category: Cue['category']): void {
+    this.scheduler.clear(category);
+    if (this.activeCategory === category) this.interrupt();
   }
 
   /** Request a cue. Returns false if the repeat rule dropped it. */
@@ -110,6 +132,7 @@ export class CueEngine {
   }
 
   private interrupt(): void {
+    this.activeCategory = null;
     if (this.delayedSpeech) clearTimeout(this.delayedSpeech);
     this.delayedSpeech = null;
     if (this.speaking) this.adapters.speech.stop();
@@ -139,6 +162,7 @@ export class CueEngine {
     const policy = channelPolicy(this.state);
     const now = this.now();
     const finished = once(cue.onFinished);
+    if (cue.text !== undefined || cue.earcon !== undefined) this.activeCategory = cue.category;
 
     if (cue.haptic && cue.haptic !== 'none' && policy.haptics) {
       this.adapters.playHaptic(cue.haptic);

@@ -184,3 +184,19 @@ review, save, share to YouTube. Record every point where sighted help was needed
 | Date | Phone | OS  | Commit | Section | Reader | Result | Notes |
 | ---- | ----- | --- | ------ | ------- | ------ | ------ | ----- |
 |      |       |     |        |         |        |        |       |
+
+## Phase 2 phone test (required before merge)
+
+1. Install the APK artifact from the Phase 2 PR run, not the shared main release. Confirm the tested commit SHA.
+2. Start with front camera, auto lens off and both voice and tones on. Move the phone left/right/up/down while your face starts off-centre. Each instruction and earphone channel should correspond to the physical direction that brings your face into the safe area. Repeat with rear camera and a stationary face.
+3. Close your eyes while standing still or sitting. Follow the cues slowly. A chime and one vibration should confirm the face fits; holding still should not repeat the confirmation. Move out and back in to trigger another confirmation.
+4. Cover the camera or leave the view. After roughly one second, guidance must say the face is not found and must stop directional tones. Return to reacquire. Add a second person: tracking should hold the original face until it is lost.
+5. Repeat portrait, both landscape directions, rotation mid-session, and front/rear flips. Confirm guidance against the visible preview using a sighted helper. No reversed directions or stale good state.
+6. Move too close and too far. Enable automatic lens switching: expect small, spaced zoom changes only while idle and only within hardware capabilities. A single-lens phone should remain usable. Disable the setting and verify no further automatic changes.
+7. Record with face guidance. Zoom must stay fixed. Test Earphones only without headphones, with wired/Bluetooth headphones, Pause cues and Always on. Confirm the expected silence/haptics and no broken audio in the recorded clip.
+8. Stop: Photos permission must be explained before the first prompt. Grant it and verify exactly one new video with sound in Photos; Save again must not duplicate it. Deny access on a fresh install: clip remains in Review, which announces the issue and supports retry. Retake keeps any already saved Photos copy.
+9. Background the app, lock/unlock, navigate into setup/settings, and return. No guidance should continue while inactive; recording should stop safely and remain recoverable.
+10. Complete subject setup, record, stop and retry save with TalkBack/VoiceOver. Confirm four camera controls, 60-point targets, large text usability, and no commands triggered by UI labels. On camera, say focus on my face; unsupported targets should explain that only face tracking is available.
+11. Enable the hidden debug display via five version taps. Record guidance updates/second and preview smoothness on each device for two minutes; note heat, battery, detector errors, and any recording interruptions. Target 10–12 guidance updates/second, with smooth 30 fps preview.
+
+Report phone/OS, commit SHA, screen-reader state, camera/orientation, and the numbered step for any failure. Merge only after Mike confirms the phone test passes.
