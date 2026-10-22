@@ -1,0 +1,6 @@
+{
+  "source": "https://www.kaggle.com/api/v1/models/google/movenet/tfLite/singlepose-lightning-tflite-int8/1/download",
+  "licence": "Apache-2.0",
+  "sha256": "cd7cc22fa946e5d146a7b98d496853e1923e22828d3972d579973f27f91bb105",
+  "bytes": 2894840
+}

@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import type { FeedbackSummary } from '@/features/feedback/stats';
+import type { VoiceSummary } from '@/features/feedback/recordedVoice';
+import { useRecordingHistory } from './recordingHistory';
 
 export type GuidanceMode = 'framing' | 'lighting' | 'feedback' | 'background';
 export const GUIDANCE_MODES: readonly GuidanceMode[] = [
@@ -24,6 +27,8 @@ export interface RecordingInfo {
   hasAudio: boolean;
   savedToPhotos: boolean;
   autoSaveResult?: 'saved' | 'denied' | 'failed';
+  feedbackSummary?: FeedbackSummary;
+  voiceSummary?: VoiceSummary;
 }
 
 interface SessionState {
@@ -63,9 +68,15 @@ export const useSession = create<SessionState>()((set) => ({
     set({ recordingPhase: 'recording', isRecording: true, recordingStartedAt: now }),
   stopRecording: () =>
     set({ recordingPhase: 'idle', isRecording: false, recordingStartedAt: null }),
-  setLastRecording: (lastRecording) => set({ lastRecording }),
+  setLastRecording: (lastRecording) => {
+    if (lastRecording) useRecordingHistory.getState().remember(lastRecording);
+    set({ lastRecording });
+  },
   markSaved: () =>
-    set((s) =>
-      s.lastRecording ? { lastRecording: { ...s.lastRecording, savedToPhotos: true } } : s,
-    ),
+    set((s) => {
+      if (!s.lastRecording) return s;
+      const info = { ...s.lastRecording, savedToPhotos: true };
+      useRecordingHistory.getState().remember(info);
+      return { lastRecording: info };
+    }),
 }));

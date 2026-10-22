@@ -1,3 +1,7 @@
+import type { FeedbackObservation } from '@/features/feedback/model';
+import type { FeedbackSummary } from '@/features/feedback/stats';
+import type { VoiceSummary } from '@/features/feedback/recordedVoice';
+
 // All user facing text lives here so more languages can be added later.
 // Functions are used where a string needs numbers or names inserted.
 
@@ -112,6 +116,87 @@ export const en = {
       `Guidance ${Number(fps).toFixed(1)} updates/s. ${box && typeof box === 'object' ? `Box ${[box.x, box.y, box.width, box.height].map((v) => Number(v).toFixed(2)).join(', ')}` : 'No target'}`,
   },
 
+  feedback: {
+    on: 'Live feedback is on. Select Feedback mode before recording.',
+    off: 'Live feedback is off. You can enable it in Settings.',
+    poseUnavailable:
+      'Posture guidance is unavailable in this build or on this phone. Head-facing and expression checks still work.',
+    status: (value: FeedbackObservation, pose: string) => {
+      if (!value || typeof value !== 'object') return 'Measuring live feedback.';
+      const parts = [
+        value.eyeContact === null
+          ? 'Head direction not measured.'
+          : value.eyeContact
+            ? 'Head facing camera.'
+            : 'Head turned away.',
+        value.smiling === null
+          ? 'Expression not measured.'
+          : value.smiling
+            ? 'Smile detected.'
+            : 'Neutral expression.',
+        pose === 'unavailable'
+          ? 'Posture unavailable.'
+          : value.posture === 'unknown'
+            ? 'Posture not measured.'
+            : value.posture === 'good'
+              ? 'Posture looks upright.'
+              : 'Posture needs adjustment.',
+      ];
+      return parts.join(' ');
+    },
+    cues: {
+      lookAtCamera: 'Look at camera.',
+      trySmiling: 'Try smiling.',
+      sitUp: 'Sit up straight.',
+      levelHead: 'Level your head slightly.',
+    },
+    summary: (value: FeedbackSummary) => {
+      if (!value || typeof value !== 'object') return 'Feedback was not measured.';
+      const measure = (name: string, percent: number | null, ms: number) =>
+        percent === null
+          ? `${name} not measured.`
+          : `${name} ${percent} percent of ${Math.round(ms / 1000)} measured seconds.`;
+      return [
+        measure('Head facing camera', value.eyeContactPercent, value.eyeMeasuredMs),
+        measure('Smiling', value.smilingPercent, value.expressionMeasuredMs),
+        measure('Upright posture', value.goodPosturePercent, value.postureMeasuredMs),
+      ].join(' ');
+    },
+    analyseVoice: {
+      label: 'Voice analysis',
+      hint: 'Measures the saved audio locally. Speaking pace needs on-device speech recognition.',
+    },
+    cancelVoice: {
+      label: 'Cancel analysis',
+      hint: 'Stops voice measurements and removes temporary audio',
+    },
+    voiceWorking: 'Measuring the saved audio on your phone. No second microphone is used.',
+    voiceUnavailable:
+      'Voice measurements failed. Your original video is kept. A new native build may be needed.',
+    progress: (fraction: number) =>
+      `Voice measurements ${Math.round(Number(fraction) * 100)} percent.`,
+    voiceSummary: (value: VoiceSummary, detailed = false) => {
+      if (!value || typeof value !== 'object') return 'Voice was not measured.';
+      const level =
+        value.quietPercent === null
+          ? 'No measurable voice level.'
+          : `Quiet in ${value.quietPercent} percent of measured audible samples.${value.quietPercent >= 30 ? ' Speak louder.' : ''}`;
+      const pace =
+        value.wordsPerMinute === null
+          ? 'Speaking pace unavailable.'
+          : `Speaking pace ${Math.round(value.wordsPerMinute)} words per minute. ${value.wordsPerMinute < 130 ? 'Speed up slightly.' : value.wordsPerMinute > 160 ? 'Slow down slightly.' : 'Pace in the target range.'}`;
+      const pitch =
+        value.monotone === null
+          ? 'Not enough voiced audio for a tone variation estimate.'
+          : detailed && value.monotone
+            ? 'Limited pitch variation. Try varying your tone.'
+            : `Pitch variation ${Number(value.pitchVariationSemitones).toFixed(1)} semitones.`;
+      return `${level} ${pace} ${pitch}`;
+    },
+    voiceFallback:
+      'Head direction, expression and posture guidance are live in Feedback mode. Voice measurements run on the saved recording from Review, preserving video sound. Speaking pace requires on-device recognition; recorded audio is never sent to a speech server.',
+  },
+
   lighting: {
     states: {
       waiting: 'Measuring lighting. Hold still for a moment.',
@@ -197,7 +282,7 @@ export const en = {
 
   voice: {
     // Spoken only while the recognizer is paused, so these may contain command phrases.
-    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, check lighting, find light, cancel light scan, or Lumi help.',
+    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, check lighting, find light, cancel light scan, feedback on, feedback off, analyse my voice, cancel voice analysis, or Lumi help.',
     notYet: 'That command comes in a later update.',
     unavailable: 'Spoken commands are not available on this phone.',
     whileRecordingOff: 'Spoken commands pause while recording. Press a volume button to stop.',
@@ -258,7 +343,7 @@ export const en = {
     version: (v: string) => `Version ${v}`,
     contact: (email: string) => `Contact: ${email}`,
     aboutBody:
-      'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Model licence notices will appear here.',
+      'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Posture uses Google MoveNet Lightning, licensed under Apache 2.0. The model is bundled and runs on your phone. Voice measurements use saved audio locally; speaking pace needs on-device recognition.',
     debugEnabled: 'Debug overlay on',
     debugDisabled: 'Debug overlay off',
   },

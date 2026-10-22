@@ -305,3 +305,17 @@ Lighting uses `react-native-vision-camera-worklets` 5.2.3 with the existing Work
 ### D36. Camera guidance modes and controls
 
 Phase 3 exposes only implemented Framing and Lighting modes, plus an explicit light-scan toggle in Lighting. This uses the original camera exception of at most six controls; other screens keep the four-control limit. Changing to Lighting replaces the framing analysis output and pauses automatic zoom, keeping scan scale stable. Lighting cues retain the shared cue engine and recording audio settings. See PHASE_3.md and TESTING.md for implementation limits and acceptance checks.
+
+## Phase 4: feedback
+
+### D37. Separate Feedback camera mode, same-frame face and pose analysis
+
+Feedback is an explicit third camera mode at 5 Hz, with one analysis output, independent type toggles and the existing off-by-default master switch. ML Kit landmarks/classification supply the head-facing and smile estimates. The approved D7 MoveNet Lightning model is bundled (source, licence and checksum in assets/models and PHASE_4.md) and runs through fast-tflite 3.0.1 with the v5.2.3 GPU resizer. Aspect-preserving padding and native camera conversion tie the pose to the tracked face. Low confidence and unsupported GPU/model paths are reported as unavailable. Head-facing and 2D posture are estimates requiring calibration; do not claim measured gaze or medical posture accuracy.
+
+### D38. Protect video audio with post-recording voice measurements
+
+The brief permits post-recording voice analysis when microphone sharing is unreliable. This cloud session cannot verify sharing on physical iOS/Android phones. The recommended fallback was chosen while an optional preference question remained unanswered: no independent microphone recorder runs beside video capture. Review offers local audio extraction and RMS/pitch measurements; pace additionally needs on-device file recognition (Android 13+). Recorded clips never use server speech recognition. Existing D19 system-service fallback for live commands is unchanged. Independent pitch advice remains Detailed-only. Document and test missing metrics instead of inventing values. Experimental live voice capture can be a separate device-validated change.
+
+### D39. Feedback history and speech ownership
+
+Only aggregates for the latest 20 recordings persist in MMKV. No frames, raw landmarks, PCM, transcript or individual voice pitch samples are retained. Temporary WAV chunks are cleaned after analysis/cancel/failure. A recognizer lease prevents file transcripts from being interpreted as commands. Retake removes the app recording and its history entry, preserving any Photos copy.

@@ -16,6 +16,7 @@ const CONFIGURE_TIMEOUT_MS = 4000;
 
 export interface RecorderCallbacks {
   onStarted: () => void;
+  onCaptured?: (info: RecordingInfo) => RecordingInfo;
   onFinished: (info: RecordingInfo) => void;
   onError: (error: unknown) => void;
 }
@@ -95,7 +96,8 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
           const durationMs = Math.max(0, Date.now() - startedAtRef.current);
           try {
             const uri = keepRecording(path);
-            const info: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
+            const base: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
+            const info = callbacksRef.current.onCaptured?.(base) ?? base;
             // Capture is finished. Release the mic and recording cue policy before explaining
             // Photos permission, while keeping the UI busy until saving completes.
             reset();

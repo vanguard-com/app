@@ -109,3 +109,9 @@ jest.mock('react-native-reanimated', () => {
     },
   };
 });
+
+jest.mock('react-native-fast-tflite', () => ({ loadTensorflowModel: jest.fn() }));
+jest.mock('react-native-vision-camera-resizer', () => ({
+  createResizer: jest.fn(),
+  isResizerAvailable: jest.fn(() => false),
+}));
