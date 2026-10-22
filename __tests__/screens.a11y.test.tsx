@@ -106,6 +106,9 @@ describe('camera guidance mode controls', () => {
     expect(interactiveElements()).toHaveLength(6);
     fireEvent.press(screen.getByTestId('camera-mode'));
     expect(screen.queryByTestId('camera-scan')).toBeNull();
+    expect(screen.getByTestId('camera-mode').props.accessibilityLabel).toBe('Mode: Feedback');
+    expect(screen.getByTestId('vision-camera').props.outputs).toHaveLength(2);
+    fireEvent.press(screen.getByTestId('camera-mode'));
     expect(screen.getByTestId('vision-camera').props.outputs).toContain(framing);
   });
 });

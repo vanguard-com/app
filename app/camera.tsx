@@ -9,6 +9,7 @@ import { applyAudioSession } from '@/audio/audioSession';
 import { AccessibleButton, StatusBorder } from '@/components';
 import { cues } from '@/cues';
 import { subjectLabel } from '@/features/framing/subject';
+import { useFeedbackCamera } from '@/features/feedback/useFeedbackCamera';
 import { useFraming } from '@/features/framing/useFraming';
 import { useLighting } from '@/features/lighting/useLighting';
 import { useLightScan } from '@/features/lighting/useLightScan';
@@ -55,6 +56,7 @@ export default function CameraScreen() {
   const subject = useSession((s) => s.subject);
   const phase = useSession((s) => s.recordingPhase);
   const startedAt = useSession((s) => s.recordingStartedAt);
+  const liveFeedback = useSettings((s) => s.liveFeedback);
   const voiceWhileRecording = useSettings((s) => s.voiceCommandsWhileRecording);
   const elapsedInterval = useSettings((s) => s.elapsedTimeInterval);
 
@@ -84,6 +86,13 @@ export default function CameraScreen() {
     scan.sample,
     !scan.running,
   );
+  const feedback = useFeedbackCamera(
+    cameraRef,
+    screenLive && cameraAllowed && cameraReady && mode === 'feedback',
+    facing,
+    previewSize,
+  );
+  const feedbackWanted = useRef(false);
   const scanRequested = useRef(false);
   const startScan = scan.start;
   const cancelScan = scan.cancel;
@@ -122,13 +131,22 @@ export default function CameraScreen() {
             Math.round(Math.abs(scan.result.turn)),
           )
         : strings.lighting.states[lighting.result.state];
-  const guidanceText = mode === 'lighting' ? lightingText : framing.statusText;
+  const guidanceText =
+    mode === 'lighting'
+      ? lightingText
+      : mode === 'feedback'
+        ? !liveFeedback
+          ? strings.feedback.off
+          : strings.feedback.status(feedback.observation, feedback.poseStatus)
+        : framing.statusText;
   const guidanceStatus =
     mode === 'lighting'
       ? lighting.result.state === 'good' && !scan.running
         ? 'good'
         : 'adjust'
-      : framing.result.status;
+      : mode === 'feedback'
+        ? 'adjust'
+        : framing.result.status;
 
   useEffect(() => {
     setMode('framing');
@@ -163,6 +181,9 @@ export default function CameraScreen() {
 
   const recorder = useRecorder(micAllowed, {
     onStarted: () => {
+      feedback.beginStats();
+      feedbackWanted.current =
+        useSession.getState().mode === 'feedback' && useSettings.getState().liveFeedback;
       cues.clear('guidance');
       cues.say({
         id: `sys.rec.start.${Date.now()}`,
@@ -172,6 +193,8 @@ export default function CameraScreen() {
         haptic: 'single',
       });
     },
+    onCaptured: (info) =>
+      feedbackWanted.current ? { ...info, feedbackSummary: feedback.finishStats() } : info,
     onFinished: () => {
       cues.say({
         id: `sys.rec.stop.${Date.now()}`,
@@ -265,6 +288,24 @@ export default function CameraScreen() {
             });
           }
           return;
+        case 'feedback':
+          if (command.on && current !== 'idle' && useSession.getState().mode !== 'feedback') {
+            cues.say({
+              id: 'sys.notWhileRecording',
+              category: 'system',
+              text: t.notWhileRecording,
+            });
+            return;
+          }
+          useSettings.getState().update({ liveFeedback: command.on });
+          if (command.on) setMode('feedback');
+          cues.say({
+            id: `feedback.master.${command.on}`,
+            category: 'system',
+            text: command.on ? strings.feedback.on : strings.feedback.off,
+            force: true,
+          });
+          return;
         case 'checkLighting':
           if (current !== 'idle' && useSession.getState().mode !== 'lighting') {
             cues.say({
@@ -299,8 +340,9 @@ export default function CameraScreen() {
       ...recorder.outputs,
       ...(subject.kind === 'face' && mode === 'framing' ? [framing.output] : []),
       ...(mode === 'lighting' ? [lighting.output] : []),
+      ...(mode === 'feedback' ? [feedback.output] : []),
     ],
-    [recorder.outputs, framing.output, subject.kind, mode, lighting.output],
+    [recorder.outputs, framing.output, subject.kind, mode, lighting.output, feedback.output],
   );
   useHardwareButton(screenLive && cameraReady, toggleRecording);
   useVoiceCommands(
@@ -530,7 +572,9 @@ export default function CameraScreen() {
           hint={t.mode.hint}
           text={t.modes[mode]}
           disabled={phase !== 'idle'}
-          onPress={() => setMode(mode === 'framing' ? 'lighting' : 'framing')}
+          onPress={() =>
+            setMode(mode === 'framing' ? 'lighting' : mode === 'lighting' ? 'feedback' : 'framing')
+          }
           testID="camera-mode"
         />
         {mode === 'lighting' ? (

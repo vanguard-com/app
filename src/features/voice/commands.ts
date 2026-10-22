@@ -13,6 +13,8 @@ export type VoiceCommand =
   | { type: 'postVideo' }
   | { type: 'checkLighting' }
   | { type: 'findLight' }
+  | { type: 'analyseVoice' }
+  | { type: 'cancelVoiceAnalysis' }
   | { type: 'cancelLightScan' }
   | { type: 'whatIsBehindMe' }
   | { type: 'describeBackground' }
@@ -30,6 +32,8 @@ interface Rule {
 
 // Order matters: more specific phrases first.
 const RULES: Rule[] = [
+  { pattern: /\b(analyze|analyse) (my |the )?voice\b/, build: () => ({ type: 'analyseVoice' }) },
+  { pattern: /\bcancel (the )?voice analysis\b/, build: () => ({ type: 'cancelVoiceAnalysis' }) },
   { pattern: /\bstop (the )?(recording|video)\b/, build: () => ({ type: 'stopRecording' }) },
   {
     pattern: /\b(start|begin) (a )?(recording|video)\b/,
@@ -102,6 +106,8 @@ export const COMMAND_HINTS = [
   'post video',
   'check lighting',
   'find light',
+  'analyse my voice',
+  'cancel voice analysis',
   'cancel light scan',
   'what is behind me',
   'describe my background',

@@ -9,6 +9,8 @@ import {
 import { IOS_SESSION } from '@/audio/audioSession';
 import { cues } from '@/cues';
 
+import { isSpeechClaimed, onSpeechClaimChange } from './speechLease';
+
 import { COMMAND_HINTS, parseCommand, type VoiceCommand } from './commands';
 
 const LANGUAGE = 'en-US';
@@ -67,10 +69,11 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   };
 
   const start = async () => {
-    if (!enabledRef.current || runningRef.current || cues.isAudioBusy()) return;
+    if (!enabledRef.current || runningRef.current || cues.isAudioBusy() || isSpeechClaimed())
+      return;
     runningRef.current = true;
     const onDevice = !forceServerRef.current && (await prefersOnDevice());
-    if (!enabledRef.current) {
+    if (!enabledRef.current || isSpeechClaimed()) {
       runningRef.current = false;
       return;
     }
@@ -98,7 +101,7 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   };
 
   const scheduleRestart = (afterError: boolean) => {
-    if (!enabledRef.current) return;
+    if (!enabledRef.current || isSpeechClaimed()) return;
     if (restartTimer.current) clearTimeout(restartTimer.current);
     backoffRef.current = afterError
       ? Math.min(MAX_BACKOFF_MS, backoffRef.current * 2)
@@ -110,7 +113,7 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   };
 
   useSpeechRecognitionEvent('result', (event) => {
-    if (!enabledRef.current || cues.isAudioBusy()) return;
+    if (!enabledRef.current || cues.isAudioBusy() || isSpeechClaimed()) return;
     const transcript = event.results[0]?.transcript ?? '';
     const command = parseCommand(transcript);
     if (!command) return;
@@ -150,6 +153,16 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
         scheduleRestart(true);
     }
   });
+
+  useEffect(
+    () =>
+      onSpeechClaimChange((claimed) => {
+        if (claimed) stop();
+        else scheduleRestart(false);
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // Pause while Lumi speaks.
   useEffect(

@@ -79,3 +79,9 @@ Questions: projectvanguard.sg@gmail.com
 ## Light scanning
 
 When you request a light scan, Lumi uses motion sensors and a small camera luminance grid to remember brighter directions. These readings are processed in memory on your phone, never uploaded or saved. Motion access is requested only for this feature; declining it does not disable ordinary lighting checks. Scanning stops when cancelled, recording starts, the camera screen closes or the app enters the background.
+
+## Optional live feedback and voice measurements
+
+Feedback mode estimates head direction, smiles and posture entirely on the phone. Only summary measurements for the latest 20 recordings are kept in Lumi's local settings storage; camera frames, raw landmarks and pose data are not retained or uploaded. Retake removes that video's summary from Lumi.
+
+Optional Voice analysis in Review reads the saved video locally, without opening another microphone. Temporary audio chunks are removed after analysis, cancellation or failure. Loudness and pitch stay on the phone. Speaking pace uses only on-device speech recognition when supported; if it is unavailable, Lumi reports pace unavailable rather than sending recorded audio to a server. Transcripts are not saved. The existing Apple/Google speech-service fallback for live commands is unchanged. Aggregate measurements are not calibrated health measurements.

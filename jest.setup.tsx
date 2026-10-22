@@ -61,6 +61,8 @@ jest.mock('expo-speech-recognition', () => ({
     getPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),
     requestPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),
     supportsOnDeviceRecognition: jest.fn(() => false),
+    getStateAsync: jest.fn(async () => 'inactive'),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
     getSupportedLocales: jest.fn(async () => ({ locales: [], installedLocales: [] })),
   },
   useSpeechRecognitionEvent: jest.fn(),
@@ -109,3 +111,9 @@ jest.mock('react-native-reanimated', () => {
     },
   };
 });
+
+jest.mock('react-native-fast-tflite', () => ({ loadTensorflowModel: jest.fn() }));
+jest.mock('react-native-vision-camera-resizer', () => ({
+  createResizer: jest.fn(),
+  isResizerAvailable: jest.fn(() => false),
+}));
