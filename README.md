@@ -7,17 +7,17 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 
 ## Status
 
-| Phase | Deliverable                                                   | State                   |
-| ----- | ------------------------------------------------------------- | ----------------------- |
-| 0     | Project setup, theme, navigation, CI, docs                    | Done, needs phone check |
-| 1     | Cue engine, camera, recording, save                           | Done, needs phone check |
-| 2     | Spatial sensing, subject setup, lens switching                |                         |
-| 3     | Lighting check, scan mode                                     |                         |
-| 4     | Live feedback                                                 |                         |
-| 5     | Background recognition, scene description                     |                         |
-| 6     | Review, sharing, voice commands                               |                         |
-| 7     | Onboarding, settings polish, accessibility audit, performance |                         |
-| 8     | Store readiness                                               |                         |
+| Phase | Deliverable                                                   | State                                       |
+| ----- | ------------------------------------------------------------- | ------------------------------------------- |
+| 0     | Project setup, theme, navigation, CI, docs                    | Done, needs phone check                     |
+| 1     | Cue engine, camera, recording, save                           | Done, needs phone check                     |
+| 2     | Spatial sensing, subject setup, lens switching                | Implemented (face-first), needs phone check |
+| 3     | Lighting check, scan mode                                     | Implemented, needs phone check              |
+| 4     | Live feedback                                                 |                                             |
+| 5     | Background recognition, scene description                     |                                             |
+| 6     | Review, sharing, voice commands                               |                                             |
+| 7     | Onboarding, settings polish, accessibility audit, performance |                                             |
+| 8     | Store readiness                                               |                                             |
 
 ## Requirements
 
@@ -179,3 +179,5 @@ imports so Jest can test it.
 No accounts, ads, analytics or cloud AI. Video and images never leave the phone. Voice commands
 use the phone's own speech recognition, which may use Apple or Google servers when on device
 recognition is not available. See [docs/PRIVACY.md](docs/PRIVACY.md) and decision D19.
+
+Phase 3 lighting and light scan details, limitations and native rebuild requirements are in [docs/PHASE_3.md](docs/PHASE_3.md). Follow the Phase 3 section in [docs/TESTING.md](docs/TESTING.md) before merging.

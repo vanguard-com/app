@@ -112,6 +112,42 @@ export const en = {
       `Guidance ${Number(fps).toFixed(1)} updates/s. ${box && typeof box === 'object' ? `Box ${[box.x, box.y, box.width, box.height].map((v) => Number(v).toFixed(2)).join(', ')}` : 'No target'}`,
   },
 
+  lighting: {
+    states: {
+      waiting: 'Measuring lighting. Hold still for a moment.',
+      unavailable:
+        'Lighting guidance is unavailable. You can still record. Try reopening the camera.',
+      needsFace: 'Face not found. Only overall brightness is available.',
+      dark: 'Lighting too dark. Move towards a light.',
+      backlit: 'Light behind you. Turn to face the light.',
+      shadowLeft: 'Shadow on the left side of your preview. Turn slightly right.',
+      shadowRight: 'Shadow on the right side of your preview. Turn slightly left.',
+      shadowTop: 'Shadow above your face. Adjust the light or lower your chin slightly.',
+      shadowBottom: 'Shadow under your face. Tilt your head up slightly.',
+      good: 'Lighting good.',
+    },
+    scan: { label: 'Light scan', hint: 'Searches for a brighter direction while you slowly turn' },
+    cancelScan: { label: 'Cancel scan', hint: 'Stops the search for a brighter direction' },
+    scanIdleOnly: 'Light scanning is available when the camera is ready and you are not recording.',
+    motionExplain:
+      'Lumi uses motion sensors to remember directions during a light scan. Your phone may now ask for motion access.',
+    motionUnavailable:
+      'Motion access is unavailable. You can allow Motion and Fitness in phone settings. Lighting checks still work.',
+    scanInstructions:
+      'Stay in one safe place. Slowly turn yourself and the phone in a full circle, keeping the phone upright. The scan stops after a minute and a half. You can cancel using the scan button.',
+    scanning: (progress: number) =>
+      `Scanning for light. ${Math.round(Number(progress) * 100)} percent covered.`,
+    scanTurn: (direction: string, degrees: number) =>
+      Number(degrees) <= 10
+        ? 'Hold this direction for a moment.'
+        : `Brighter area ${direction}. Turn about ${degrees} degrees.`,
+    scanDone: 'Brighter direction reached. Hold still while lighting is checked again.',
+    scanFailed:
+      'No reliable brighter direction found. Keep the phone upright, move near a light, and try again.',
+    debug: (overall: number, face: number | null) =>
+      `Brightness ${Number(overall).toFixed(0)}. Face ${face === null ? 'not found' : Number(face).toFixed(0)}.`,
+  },
+
   review: {
     title: 'Review',
     screenAnnouncement: 'Review',
@@ -161,7 +197,7 @@ export const en = {
 
   voice: {
     // Spoken only while the recognizer is paused, so these may contain command phrases.
-    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, or Lumi help.',
+    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, check lighting, find light, cancel light scan, or Lumi help.',
     notYet: 'That command comes in a later update.',
     unavailable: 'Spoken commands are not available on this phone.',
     whileRecordingOff: 'Spoken commands pause while recording. Press a volume button to stop.',

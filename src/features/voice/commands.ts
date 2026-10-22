@@ -13,6 +13,7 @@ export type VoiceCommand =
   | { type: 'postVideo' }
   | { type: 'checkLighting' }
   | { type: 'findLight' }
+  | { type: 'cancelLightScan' }
   | { type: 'whatIsBehindMe' }
   | { type: 'describeBackground' }
   | { type: 'feedback'; on: boolean }
@@ -48,6 +49,7 @@ const RULES: Rule[] = [
     build: () => ({ type: 'postVideo' }),
   },
   { pattern: /\bcheck (the )?light(ing)?\b/, build: () => ({ type: 'checkLighting' }) },
+  { pattern: /\b(cancel|stop) (the )?light scan\b/, build: () => ({ type: 'cancelLightScan' }) },
   { pattern: /\bfind (the )?light\b/, build: () => ({ type: 'findLight' }) },
   { pattern: /\bwhat('s| is) behind me\b/, build: () => ({ type: 'whatIsBehindMe' }) },
   {
@@ -100,6 +102,7 @@ export const COMMAND_HINTS = [
   'post video',
   'check lighting',
   'find light',
+  'cancel light scan',
   'what is behind me',
   'describe my background',
   'feedback on',

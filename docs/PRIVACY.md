@@ -75,3 +75,7 @@ If this policy changes, the new version will be posted at this address with a ne
 ## Contact
 
 Questions: projectvanguard.sg@gmail.com
+
+## Light scanning
+
+When you request a light scan, Lumi uses motion sensors and a small camera luminance grid to remember brighter directions. These readings are processed in memory on your phone, never uploaded or saved. Motion access is requested only for this feature; declining it does not disable ordinary lighting checks. Scanning stops when cancelled, recording starts, the camera screen closes or the app enters the background.

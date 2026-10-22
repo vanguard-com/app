@@ -10,6 +10,8 @@ import { AccessibleButton, StatusBorder } from '@/components';
 import { cues } from '@/cues';
 import { subjectLabel } from '@/features/framing/subject';
 import { useFraming } from '@/features/framing/useFraming';
+import { useLighting } from '@/features/lighting/useLighting';
+import { useLightScan } from '@/features/lighting/useLightScan';
 import {
   ensureCameraPermission,
   ensureMicrophonePermission,
@@ -69,9 +71,64 @@ export default function CameraScreen() {
   const framing = useFraming(
     cameraRef,
     facing,
-    screenLive && cameraAllowed && cameraReady && subject.kind === 'face',
+    screenLive && cameraAllowed && cameraReady && subject.kind === 'face' && mode === 'framing',
     previewSize,
   );
+  const lightingActive = screenLive && cameraAllowed && cameraReady && mode === 'lighting';
+  const scan = useLightScan(lightingActive, phase === 'idle');
+  const lighting = useLighting(
+    cameraRef,
+    lightingActive,
+    previewSize,
+    facing,
+    scan.sample,
+    !scan.running,
+  );
+  const scanRequested = useRef(false);
+  const startScan = scan.start;
+  const cancelScan = scan.cancel;
+  const speakLightingStatus = lighting.speakStatus;
+  useEffect(() => {
+    if (!screenLive || phase !== 'idle' || mode !== 'lighting') scanRequested.current = false;
+  }, [screenLive, phase, mode]);
+  useEffect(() => {
+    if (mode === 'lighting' && lightingActive && scanRequested.current) {
+      scanRequested.current = false;
+      void startScan();
+    }
+  }, [mode, lightingActive, startScan]);
+  const beginScan = useCallback(() => {
+    if (!screenLive || !cameraReady || phase !== 'idle') {
+      cues.say({
+        id: 'lighting.scan.busy',
+        category: 'system',
+        text: strings.lighting.scanIdleOnly,
+        force: true,
+      });
+      return;
+    }
+    if (mode === 'lighting') void startScan();
+    else {
+      scanRequested.current = true;
+      setMode('lighting');
+    }
+  }, [screenLive, cameraReady, phase, mode, startScan, setMode]);
+  const lightingText =
+    scan.result.phase === 'scanning'
+      ? strings.lighting.scanning(scan.result.progress)
+      : scan.result.phase === 'guiding'
+        ? strings.lighting.scanTurn(
+            scan.result.turn < 0 ? 'left' : 'right',
+            Math.round(Math.abs(scan.result.turn)),
+          )
+        : strings.lighting.states[lighting.result.state];
+  const guidanceText = mode === 'lighting' ? lightingText : framing.statusText;
+  const guidanceStatus =
+    mode === 'lighting'
+      ? lighting.result.state === 'good' && !scan.running
+        ? 'good'
+        : 'adjust'
+      : framing.result.status;
 
   useEffect(() => {
     setMode('framing');
@@ -156,6 +213,7 @@ export default function CameraScreen() {
       cues.say({ id: 'sys.notWhileRecording', category: 'system', text: t.notWhileRecording });
       return;
     }
+    scanRequested.current = false;
     const next = useSession.getState().facing === 'front' ? 'back' : 'front';
     setCameraReady(false);
     setFacing(next);
@@ -171,7 +229,7 @@ export default function CameraScreen() {
     cues.say({
       id: 'sys.status',
       category: 'system',
-      text: `${text} ${framing.statusText}`,
+      text: `${text} ${guidanceText}`,
       force: true,
     });
   };
@@ -207,6 +265,25 @@ export default function CameraScreen() {
             });
           }
           return;
+        case 'checkLighting':
+          if (current !== 'idle' && useSession.getState().mode !== 'lighting') {
+            cues.say({
+              id: 'sys.notWhileRecording',
+              category: 'system',
+              text: t.notWhileRecording,
+            });
+            return;
+          }
+          setMode('lighting');
+          speakLightingStatus();
+          return;
+        case 'cancelLightScan':
+          scanRequested.current = false;
+          cancelScan();
+          return;
+        case 'findLight':
+          beginScan();
+          return;
         case 'help':
           cues.say({ id: 'sys.help', category: 'system', text: strings.voice.help, force: true });
           return;
@@ -214,12 +291,16 @@ export default function CameraScreen() {
           cues.say({ id: 'sys.notYet', category: 'system', text: strings.voice.notYet });
       }
     },
-    [flip, toggleRecording],
+    [flip, toggleRecording, setMode, speakLightingStatus, beginScan, cancelScan],
   );
 
   const outputs = useMemo(
-    () => (subject.kind === 'face' ? [...recorder.outputs, framing.output] : recorder.outputs),
-    [recorder.outputs, framing.output, subject.kind],
+    () => [
+      ...recorder.outputs,
+      ...(subject.kind === 'face' && mode === 'framing' ? [framing.output] : []),
+      ...(mode === 'lighting' ? [lighting.output] : []),
+    ],
+    [recorder.outputs, framing.output, subject.kind, mode, lighting.output],
   );
   useHardwareButton(screenLive && cameraReady, toggleRecording);
   useVoiceCommands(
@@ -317,7 +398,7 @@ export default function CameraScreen() {
         />
       ) : null}
 
-      {/* Four controls: flip, status, record, subject/setup (which also links to settings). */}
+      {/* At most six camera controls, with mode and scan anchored at the left edge. */}
 
       {isRecording ? (
         <View
@@ -396,7 +477,7 @@ export default function CameraScreen() {
         </View>
       ) : null}
 
-      <StatusBorder status={screenLive && cameraReady ? framing.result.status : null} />
+      <StatusBorder status={screenLive && cameraReady ? guidanceStatus : null} />
       {debugOverlay && framing.result.box ? (
         <View
           pointerEvents="none"
@@ -423,20 +504,46 @@ export default function CameraScreen() {
           importantForAccessibility="no-hide-descendants"
         >
           <Text style={[typography.status, { color: colors.textPrimary }]}>
-            {framing.result.state === 'good'
-              ? '✓ '
-              : framing.result.status === 'problem'
-                ? '! '
-                : '↔ '}
-            {framing.statusText}
+            {guidanceStatus === 'good' ? '✓ ' : guidanceStatus === 'problem' ? '! ' : '↔ '}
+            {guidanceText}
           </Text>
           {debugOverlay ? (
             <Text style={[typography.body, { color: colors.textSecondary }]}>
-              {strings.framing.debug(framing.fps, framing.result.box)}
+              {mode === 'lighting'
+                ? strings.lighting.debug(lighting.result.overall, lighting.result.face)
+                : strings.framing.debug(framing.fps, framing.result.box)}
             </Text>
           ) : null}
         </View>
       ) : null}
+
+      <View
+        style={[
+          styles.corner,
+          styles.layerControls,
+          { bottom: edge.bottom + 100, left: edge.left },
+        ]}
+      >
+        <AccessibleButton
+          scheme="dark"
+          label={t.mode.label(t.modes[mode])}
+          hint={t.mode.hint}
+          text={t.modes[mode]}
+          disabled={phase !== 'idle'}
+          onPress={() => setMode(mode === 'framing' ? 'lighting' : 'framing')}
+          testID="camera-mode"
+        />
+        {mode === 'lighting' ? (
+          <AccessibleButton
+            scheme="dark"
+            label={scan.running ? strings.lighting.cancelScan.label : strings.lighting.scan.label}
+            hint={scan.running ? strings.lighting.cancelScan.hint : strings.lighting.scan.hint}
+            disabled={phase !== 'idle'}
+            onPress={beginScan}
+            testID="camera-scan"
+          />
+        ) : null}
+      </View>
 
       <View
         style={[styles.recordWrap, styles.layerControls, { bottom: edge.bottom }]}

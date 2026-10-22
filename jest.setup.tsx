@@ -32,10 +32,12 @@ jest.mock('react-native-audio-api', () => {
 jest.mock('react-native-vision-camera', () => {
   const { View } = require('react-native');
   const output = { createRecorder: jest.fn() };
+  const frameOutput = {};
   return {
     Camera: (props: object) => <View testID="vision-camera" {...props} />,
     CommonResolutions: { FHD_16_9: { width: 1920, height: 1080 } },
     useVideoOutput: () => output,
+    useFrameOutput: jest.fn(() => frameOutput),
     useCameraDevice: () => ({ id: 'mock-camera', minZoom: 1, maxZoom: 3 }),
     VisionCamera: {
       cameraPermissionStatus: 'authorized',
@@ -48,6 +50,7 @@ jest.mock('react-native-vision-camera', () => {
 
 jest.mock('react-native-vision-camera-face-detector', () => ({
   createFaceDetectorOutput: jest.fn(() => ({})),
+  createFaceDetector: jest.fn(() => ({ detectFaces: jest.fn(() => []) })),
 }));
 
 jest.mock('expo-speech-recognition', () => ({
@@ -73,3 +76,36 @@ jest.mock('expo-media-library/legacy', () => ({
   requestPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true })),
   saveToLibraryAsync: jest.fn(async () => {}),
 }));
+
+jest.mock('expo-sensors', () => ({
+  DeviceMotion: {
+    isAvailableAsync: jest.fn(async () => true),
+    getPermissionsAsync: jest.fn(async () => ({ granted: true })),
+    requestPermissionsAsync: jest.fn(async () => ({ granted: true })),
+    setUpdateInterval: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+  },
+}));
+
+jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+jest.mock('react-native-reanimated', () => {
+  const mock = require('react-native-reanimated/mock');
+  return {
+    ...mock,
+    useSharedValue: (initial: unknown) => {
+      const { useRef } = require('react');
+      const ref = useRef();
+      if (!ref.current)
+        ref.current = {
+          value: initial,
+          set(value: unknown) {
+            this.value = value;
+          },
+          get() {
+            return this.value;
+          },
+        };
+      return ref.current;
+    },
+  };
+});

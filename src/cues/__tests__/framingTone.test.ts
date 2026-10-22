@@ -35,6 +35,13 @@ describe('framing tone audio policy', () => {
     expect(adapters.playTone).not.toHaveBeenCalled();
     engine.dispose();
   });
+  it('tracks scan tones under lighting so leaving that mode clears their audio lock', () => {
+    const { engine } = setup();
+    expect(engine.guideTone({ frequency: 440, pan: 1, durationS: 0.08 }, 'lighting')).toBe(true);
+    engine.clearCategory('lighting');
+    expect(engine.isAudioBusy()).toBe(false);
+    engine.dispose();
+  });
   it('stops framing speech when leaving the camera without interrupting system messages', () => {
     const { engine, adapters } = setup();
     engine.say({ id: 'framing.left', category: 'framing', text: 'Move phone left.' });

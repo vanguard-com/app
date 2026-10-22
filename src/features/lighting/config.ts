@@ -1,0 +1,18 @@
+export const LIGHTING = {
+  gridSize: 32,
+  intervalMs: 500,
+  staleMs: 1500,
+  settleMs: 1000,
+  dark: 45,
+  backlightRatio: 1.7,
+  backlightDifference: 45,
+  shadowRatio: 1.5,
+  shadowDifference: 30,
+  minimumFaceCells: 16,
+  scanBinDegrees: 10,
+  scanCoverageBins: 30,
+  scanTimeoutMs: 90_000,
+  sensorStaleMs: 1000,
+  alignmentDegrees: 10,
+  alignmentMs: 700,
+} as const;
