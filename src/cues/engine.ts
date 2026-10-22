@@ -74,8 +74,11 @@ export class CueEngine {
     return this.state;
   }
 
-  /** Short framing beep, admitted by the same channel policy and audio lock as queued cues. */
-  guideTone(options: { frequency: number; pan: number; durationS: number }): boolean {
+  /** Short directional beep, admitted by the same channel policy and audio lock as queued cues. */
+  guideTone(
+    options: { frequency: number; pan: number; durationS: number },
+    category: 'framing' | 'lighting' = 'framing',
+  ): boolean {
     if (
       !channelPolicy(this.state).tones ||
       this.isAudioBusy() ||
@@ -84,7 +87,7 @@ export class CueEngine {
     )
       return false;
     this.adapters.playTone({ ...options, volume: this.state.cueVolume * 0.35 });
-    this.activeCategory = 'framing';
+    this.activeCategory = category;
     this.audioBusyUntil = this.now() + options.durationS * 1000 + 20;
     return true;
   }

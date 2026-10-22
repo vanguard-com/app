@@ -92,6 +92,12 @@
           "androidPermissions": [],
           "disableFFmpeg": true
         }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Lumi uses motion to guide you towards a brighter direction during a light scan."
+        }
       ]
     ]
   }

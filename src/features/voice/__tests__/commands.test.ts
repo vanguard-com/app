@@ -38,6 +38,12 @@ describe('parseCommand', () => {
     expect(parseCommand('turn off feedback')).toEqual({ type: 'feedback', on: false });
   });
 
+  it('parses cancellation of a light scan without matching its button label', () => {
+    expect(parseCommand('cancel light scan')).toEqual({ type: 'cancelLightScan' });
+    expect(parseCommand('stop the light scan')).toEqual({ type: 'cancelLightScan' });
+    expect(parseCommand('Cancel scan')).toBeNull();
+  });
+
   it('parses the subject in focus on', () => {
     expect(parseCommand('focus on the mug')).toEqual({ type: 'focusOn', subject: 'mug' });
     expect(parseCommand('Focus on my laptop')).toEqual({ type: 'focusOn', subject: 'laptop' });

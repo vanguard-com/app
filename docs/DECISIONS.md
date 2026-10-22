@@ -291,3 +291,17 @@ Every completed recording attempts an add-only Photos save. Denial/failure prese
 ### D33. Phase 2 validation and merge
 
 Use a separate phase branch and PR APK artifact. Keep the PR unmerged until the owner confirms phone tests. ML Kit iOS compilation uses an unsigned device target, since arm64 simulator binaries are unavailable upstream.
+
+## Phase 3: lighting
+
+### D34. One camera analysis output per mode
+
+Lighting uses `react-native-vision-camera-worklets` 5.2.3 with the existing Worklets runtime. Its 2 Hz processor samples the camera's Y plane and detects faces from that same frame. Framing keeps the existing native detector. They are never attached together: Android CameraX supports only one ImageAnalysis use case. No additional resize plugin is needed for a CPU luminance grid: native preview-sized YUV buffers plus fixed-grid sampling avoid copying full RGB frames to JavaScript. Native converters align both face bounds and sampled pixels to preview coordinates.
+
+### D35. Relative motion scanning and honest brightness limits
+
+`expo-sensors` (SDK 57) supplies fused gyroscope attitude only while the user requests a scan. iOS motion permission is explained before prompting. Relative yaw is sufficient for returning to a sampled direction; no location or compass permission is requested. Pixel luminance is affected by automatic exposure, so a scan suggests a brighter sampled direction and face lighting is checked again afterward. It does not claim a lux measurement. Coverage, contrast, sensor freshness and timeout checks prevent unsupported success claims. Initial thresholds require phone calibration.
+
+### D36. Camera guidance modes and controls
+
+Phase 3 exposes only implemented Framing and Lighting modes, plus an explicit light-scan toggle in Lighting. This uses the original camera exception of at most six controls; other screens keep the four-control limit. Changing to Lighting replaces the framing analysis output and pauses automatic zoom, keeping scan scale stable. Lighting cues retain the shared cue engine and recording audio settings. See PHASE_3.md and TESTING.md for implementation limits and acceptance checks.
