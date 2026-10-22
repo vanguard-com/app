@@ -6,6 +6,7 @@ import { claimSpeech } from '@/features/voice/speechLease';
 
 import { extractAudio, cleanupAudio, cancelExtraction } from '../../../modules/lumi-audio-analysis';
 import { FEEDBACK } from './config';
+import { stopFileRecognition, releaseWhenStopped } from './recognizerShutdown';
 import { analyseVoice, pitchVariation, wordsPerMinute } from './voiceMath';
 
 export interface VoiceSummary {
@@ -72,13 +73,15 @@ function recognize(uri: string, signal: AbortSignal): Promise<string | null> {
       clearTimeout(timer);
       subscriptions.forEach((s) => s.remove());
       signal.removeEventListener('abort', abort);
+      resolve(value);
+    };
+    const abort = () => {
       try {
         ExpoSpeechRecognitionModule.abort();
       } catch {}
-      resolve(value);
+      finish(null);
     };
-    const abort = () => finish(null);
-    const timer = setTimeout(() => finish(null), 60_000);
+    const timer = setTimeout(abort, 60_000);
     subscriptions.push(
       ExpoSpeechRecognitionModule.addListener('result', (event) => {
         const transcript = event.results[0]?.transcript?.trim() ?? '';
@@ -188,6 +191,10 @@ export async function analyseRecordedVoice(
   } finally {
     signal.removeEventListener('abort', cancel);
     await cleanupAudio(job).catch(() => {});
-    release();
+    if (await stopFileRecognition()) release();
+    else {
+      releaseWhenStopped(release);
+      throw new Error('Speech recognizer has not stopped');
+    }
   }
 }

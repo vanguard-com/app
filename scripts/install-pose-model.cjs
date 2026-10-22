@@ -29,10 +29,16 @@ try {
   );
   const names = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' }).trim().split('\n');
   const models = names.filter(
-    (name) => name.endsWith('.tflite') && !name.startsWith('/') && !name.split('/').includes('..'),
+    (name) =>
+      name.endsWith('.tflite') &&
+      !name.startsWith('-') &&
+      !name.startsWith('/') &&
+      !name.split('/').includes('..'),
   );
   if (models.length !== 1) throw new Error('Expected exactly one model in the official archive');
-  const bytes = execFileSync('tar', ['-xOzf', archive, models[0]], { maxBuffer: 16 * 1024 * 1024 });
+  const bytes = execFileSync('tar', ['-xOzf', archive, '--', models[0]], {
+    maxBuffer: 16 * 1024 * 1024,
+  });
   if (bytes.toString('ascii', 4, 8) !== 'TFL3') throw new Error('Not a TensorFlow Lite model');
   const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
   const metadataPath = path.join(root, 'assets/models/movenet-lightning.json');

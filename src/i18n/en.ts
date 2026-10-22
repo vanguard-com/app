@@ -282,7 +282,7 @@ export const en = {
 
   voice: {
     // Spoken only while the recognizer is paused, so these may contain command phrases.
-    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, check lighting, find light, cancel light scan, feedback on, feedback off, analyse my voice, cancel voice analysis, or Lumi help.',
+    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, check lighting, find light, cancel light scan, feedback on, feedback off, analyse my voice, or Lumi help.',
     notYet: 'That command comes in a later update.',
     unavailable: 'Spoken commands are not available on this phone.',
     whileRecordingOff: 'Spoken commands pause while recording. Press a volume button to stop.',
