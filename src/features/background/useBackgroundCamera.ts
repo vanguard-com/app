@@ -29,6 +29,8 @@ import {
 } from './model';
 import { loadObjectResources } from './resources';
 
+const RESOLUTION = { width: 640, height: 480 };
+
 type FacePacket = Pick<Face, 'bounds' | 'trackingId'>;
 export function objectList(objects: TrackedObject[], face: Box | null): string {
   const entries = [
@@ -271,7 +273,7 @@ export function useBackgroundCamera(
     [token, enabled, lastFace, lastObject, detector, model, resizer, mapping, receive, failed],
   );
   const output = useFrameOutput({
-    targetResolution: { width: 640, height: 480 },
+    targetResolution: RESOLUTION,
     pixelFormat: 'yuv',
     enablePreviewSizedOutputBuffers: true,
     dropFramesWhileBusy: true,

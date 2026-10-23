@@ -118,7 +118,9 @@ it('releases frames on inference errors and stops analysis when inactive', async
   expect(frame.dispose).toHaveBeenCalledTimes(1);
   expect(native.resized.dispose).toHaveBeenCalledTimes(1);
   expect(result.current.status).toBe('unavailable');
+  const resolution = jest.mocked(useFrameOutput).mock.calls.at(-1)![0]!.targetResolution;
   rerender({ active: false });
+  expect(jest.mocked(useFrameOutput).mock.calls.at(-1)![0]!.targetResolution).toBe(resolution);
   act(() => {
     jest.advanceTimersByTime(1000);
     frame = process();
