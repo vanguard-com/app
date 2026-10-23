@@ -117,3 +117,22 @@ jest.mock('react-native-vision-camera-resizer', () => ({
   createResizer: jest.fn(),
   isResizerAvailable: jest.fn(() => false),
 }));
+
+jest.mock('llama.rn', () => ({ initLlama: jest.fn() }));
+jest.mock('react-native-nitro-image', () => ({ Images: { loadFromFileAsync: jest.fn() } }));
+jest.mock('expo-network', () => ({
+  NetworkStateType: { WIFI: 'WIFI', CELLULAR: 'CELLULAR', NONE: 'NONE' },
+  getNetworkStateAsync: jest.fn(async () => ({
+    type: 'WIFI',
+    isConnected: true,
+    isInternetReachable: true,
+  })),
+  addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+jest.mock('expo-device', () => ({
+  totalMemory: 8 * 1024 ** 3,
+  deviceType: 1,
+  DeviceType: { PHONE: 1 },
+  modelName: 'Test phone',
+}));
+jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));

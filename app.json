@@ -98,6 +98,22 @@
         {
           "motionPermission": "Lumi uses motion to guide you towards a brighter direction during a light scan."
         }
+      ],
+      [
+        "llama.rn",
+        {
+          "enableEntitlements": false,
+          "forceCxx20": false,
+          "enableOpenCLAndHexagon": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": false,
+          "cameraPermission": "Lumi uses the camera to record video and guide framing and lighting.",
+          "microphonePermission": "Lumi records sound with your video and gives feedback on your voice."
+        }
       ]
     ]
   }

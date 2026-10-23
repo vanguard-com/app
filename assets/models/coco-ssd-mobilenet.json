@@ -1,0 +1,13 @@
+{
+  "source": "https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v1_1.0_quant_2018_06_29.zip",
+  "sha256": "e4b118e5e4531945de2e659742c7c590f7536f8d0ed26d135abcfe83b4779d13",
+  "bytes": 4183312,
+  "license": "Apache-2.0",
+  "input": "uint8 [1,300,300,3] RGB, contain letterbox",
+  "outputs": [
+    "float32 [1,10,4] ymin,xmin,ymax,xmax",
+    "float32 [1,10] zero-based sparse COCO classes",
+    "float32 [1,10] confidence",
+    "float32 [1] count"
+  ]
+}

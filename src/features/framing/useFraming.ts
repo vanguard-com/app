@@ -24,6 +24,7 @@ export function useFraming(
   facing: CameraFacing,
   active: boolean,
   size: { width: number; height: number },
+  externalFrames = false,
 ) {
   const safeZone = useSettings((s) => s.safeZone);
   const autoLens = useSettings((s) => s.autoLens);
@@ -45,7 +46,7 @@ export function useFraming(
     setResult(next);
   }, []);
 
-  const onFaces = (faces: Face[]) => {
+  const onFaces = (faces: Pick<Face, 'bounds' | 'trackingId'>[]) => {
     const current = live.current;
     const view = camera.current;
     const now = Date.now();
@@ -106,27 +107,29 @@ export function useFraming(
   /* eslint-disable react-hooks/refs -- The native factory retains these callbacks for later frames; it does not invoke them during render. */
   const output = useMemo(
     () =>
-      createFaceDetectorOutput({
-        cameraFacing: facing,
-        mirrorMode: 'auto',
-        autoMode: true,
-        performanceMode: 'fast',
-        trackingEnabled: true,
-        minFaceSize: 0.08,
-        runLandmarks: false,
-        runContours: false,
-        runClassifications: false,
-        outputResolution: 'preview',
-        onFacesDetected: (faces) => {
-          if (live.current.facing === facing) onFacesRef.current(faces);
-        },
-        onError: (error) => {
-          if (!live.current.active) return;
-          console.warn('Face detection failed', error);
-          failure.current = true;
-        },
-      }),
-    [facing],
+      externalFrames
+        ? null
+        : createFaceDetectorOutput({
+            cameraFacing: facing,
+            mirrorMode: 'auto',
+            autoMode: true,
+            performanceMode: 'fast',
+            trackingEnabled: true,
+            minFaceSize: 0.08,
+            runLandmarks: false,
+            runContours: false,
+            runClassifications: false,
+            outputResolution: 'preview',
+            onFacesDetected: (faces) => {
+              if (live.current.facing === facing) onFacesRef.current(faces);
+            },
+            onError: (error) => {
+              if (!live.current.active) return;
+              console.warn('Face detection failed', error);
+              failure.current = true;
+            },
+          }),
+    [facing, externalFrames],
   );
   /* eslint-enable react-hooks/refs */
 
@@ -199,5 +202,9 @@ export function useFraming(
     };
   }, [active, result.state, result.status]);
 
-  return { output, result, fps, statusText: t.states[result.state] };
+  const receiveFaces = useCallback(
+    (faces: Pick<Face, 'bounds' | 'trackingId'>[]) => onFacesRef.current(faces),
+    [],
+  );
+  return { output, result, fps, statusText: t.states[result.state], receiveFaces };
 }

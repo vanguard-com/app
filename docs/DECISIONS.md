@@ -319,3 +319,41 @@ The brief permits post-recording voice analysis when microphone sharing is unrel
 ### D39. Feedback history and speech ownership
 
 Only aggregates for the latest 20 recordings persist in MMKV. No frames, raw landmarks, PCM, transcript or individual voice pitch samples are retained. Temporary WAV chunks are cleaned after analysis/cancel/failure. A recognizer lease prevents file transcripts from being interpreted as commands. Retake removes the app recording and its history entry, preserving any Photos copy.
+
+## Phase 5: background recognition
+
+### D40. One shared Framing/Background analysis stream
+
+Background detection is bundled COCO SSD MobileNet, Apache 2.0, through the existing fast-tflite runtime. Framing's face detector now runs inside the same frame output at 12 Hz, with object inference at 1 Hz; Lighting and Feedback replace that output as before. This preserves Android's single ImageAnalysis constraint while allowing priority 3 warnings during Framing. Two observations establish a stable object, with a 2.5-second expiry. COCO has no window/bookshelf category, so backlight is described as a bright area, possibly a window. See PHASE_5.md for provenance, evidence and phone calibration requirements.
+
+### D41. Verified, pinned Standard and Gemma vision builds
+
+Checked npm latest `llama.rn@0.13.0-rc.8` and its published source on 23 October 2026. Its upstream core is llama.cpp b11804 (`c7fc5094179bf8a9c73c18593db714f8da41a402`) and contains the Gemma 3n MobileNetV5 vision encoder. Official ggml-org and Unsloth Gemma builds remain text-only. The community `shreyashmakadia/gemma-3n-E2B-it-vision-GGUF` conversion supplies a vision-only projector with the documented layer-scale fix, preserving the requested Gemma model family.
+
+Hugging Face access became available during validation. Standard and Detailed model/projector pairs were downloaded, all four publisher SHA-256 hashes matched, and both performed actual image inference with CPU llama-mtmd-cli b11804 using the app's context/image-token limits. Exact reviewed revisions, filenames, sizes and hashes are committed in `assets/models/scene-models.json`; the app downloads only those immutable revisions. Installation additionally validates vision support in the actual mobile runtime before activation. Community conversion provenance, its Google source commit and the licence notice are in PHASE_5.md, model information and About. Phone inference and performance remain acceptance requirements.
+
+### D42. Optional downloads, licences and memory limits
+
+Standard is SmolVLM2 500M (Apache 2.0); optional Detailed requests Gemma 3n E2B. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including the prohibited use policy at https://ai.google.dev/gemma/prohibited_use_policy. The same required notice is in About and model installation information. No Gemma weights are distributed in the repository. Detailed uses a community GGUF conversion and quantization by shreyashmakadia of Google Gemma 3n, with source and modifications documented in PHASE_5.md. The user reviews terms before explicitly confirming a download; Google does not endorse Lumi. Combined sizes are pinned from verified publisher metadata: 545,593,888 bytes for Standard, 3,906,704,128 for Detailed. Wi-Fi default, 20-percent progress announcements, cancellation, native streaming SHA-256 and iOS backup exclusion apply to both files. Gates require 3/8 GiB RAM for Standard/Detailed and a 1 GiB storage reserve; unsupported phones keep the bundled list. Local requests release context memory afterward. No paid/cloud AI is used.
+
+### D43. Scene benchmark observations
+
+The hidden phone benchmark records the exact revision, device/OS, total and component timings, and output for each installed model using the same gallery photograph. Only the latest 20 result records persist locally, with an explicit Clear action; photos are never retained in results. Gallery originals remain untouched.
+
+| Model                  | Physical phone tested          | Time and quality result                                         |
+| ---------------------- | ------------------------------ | --------------------------------------------------------------- |
+| Standard SmolVLM2 500M | None in this cloud environment | Not measured; five-second target unverified                     |
+| Detailed Gemma 3n E2B  | None in this cloud environment | Pair hashes and CPU vision verified; phone results not measured |
+
+Native model-source inspection and a real CPU COCO detector smoke check are documented in PHASE_5.md. They are not substitutes for these phone results. Populate this table from the hidden screen before Phase 5 acceptance.
+
+#### Linux compatibility baseline, 23 October 2026
+
+Actual local inference on TensorFlow's public Grace Hopper JPEG, using official llama-mtmd-cli b11804, Intel Xeon Platinum 8573C, four CPU threads, context 2048, image-token setting 256, maximum 96 output tokens and temperature 0.1. Both GGUF pairs and the CLI archive were checksum verified. Runs reused OS file cache; these totals include process/model loading, image encoding and generation, **exclude app hash verification and camera capture**, and are not phone benchmarks.
+
+| Model    | Measured wall time | Actual output                                                                                                                                                                                                                                                                                                        |
+| -------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Standard | 5.368 s            | “The background is a blue wall with an American flag.”                                                                                                                                                                                                                                                               |
+| Detailed | 28.848 s           | “The background features a large American flag to the left, partially obscuring a blue backdrop. A gold-colored rope with tassels is draped behind the flag. The lighting appears to be somewhat flat, with no strong shadows, and the background is not entirely clear, with some areas appearing slightly darker.” |
+
+This proves that the pinned Gemma conversion has a working vision path with the shared core. It does not prove mobile wrapper behavior, phone latency or general accuracy. Standard produced an inaccurate person caption with a more complex prompt variant; its final prompt keeps the background task concise, while Detailed uses explicit instructions to avoid describing or identifying the person. The app always prefaces descriptions with an uncertainty notice. Test several real filming scenes and keep the object-list fallback. Standard's five-second phone target remains unverified. Detailed gets a 120-second watchdog rather than Standard's 45 seconds so slower optional inference can finish or be cancelled by the user.

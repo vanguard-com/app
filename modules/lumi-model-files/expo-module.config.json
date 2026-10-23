@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["LumiModelFilesModule"] },
+  "android": { "modules": ["expo.modules.lumimodelfiles.LumiModelFilesModule"] }
+}
