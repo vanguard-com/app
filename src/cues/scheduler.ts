@@ -108,6 +108,10 @@ export class CueScheduler {
     this.pending = category ? this.pending.filter((p) => p.cue.category !== category) : [];
   }
 
+  clearIds(ids: readonly string[]): void {
+    this.pending = this.pending.filter((p) => !ids.includes(p.cue.id));
+  }
+
   private speechAllowed(cue: Cue, now: number): boolean {
     if (cue.category === 'system' || cue.force) return true;
     return now - this.lastSpeechAt >= SPOKEN_CUE_INTERVAL_MS[this.verbosity];

@@ -32,6 +32,18 @@ function makeAdapters() {
 }
 
 describe('CueEngine', () => {
+  it('clearing resolved background warnings preserves a requested scene description', () => {
+    const t = makeAdapters();
+    const engine = new CueEngine(t.adapters);
+    engine.say({ id: 'scene.description', category: 'background', text: 'A shelf beside a lamp.' });
+    engine.clearIds(['background.bright', 'background.person', 'background.clutter']);
+    expect(t.adapters.speech.stop).not.toHaveBeenCalled();
+    expect(engine.isAudioBusy()).toBe(true);
+    engine.clearIds(['scene.description']);
+    expect(t.adapters.speech.stop).toHaveBeenCalledTimes(1);
+    expect(engine.isAudioBusy()).toBe(false);
+  });
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(0);

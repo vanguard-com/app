@@ -54,6 +54,7 @@ export class CueEngine {
   private audioBusyUntil = 0;
   private speaking = false;
   private activeCategory: Cue['category'] | null = null;
+  private activeId: string | null = null;
   private pumpTimer: ReturnType<typeof setTimeout> | null = null;
   private speechTimeout: ReturnType<typeof setTimeout> | null = null;
   private delayedSpeech: ReturnType<typeof setTimeout> | null = null;
@@ -88,6 +89,7 @@ export class CueEngine {
       return false;
     this.adapters.playTone({ ...options, volume: this.state.cueVolume * 0.35 });
     this.activeCategory = category;
+    this.activeId = null;
     this.audioBusyUntil = this.now() + options.durationS * 1000 + 20;
     return true;
   }
@@ -95,6 +97,12 @@ export class CueEngine {
   clearCategory(category: Cue['category']): void {
     this.scheduler.clear(category);
     if (this.activeCategory === category) this.interrupt();
+  }
+
+  /** Cancel only named cues, preserving other speech in the same priority category. */
+  clearIds(ids: readonly string[]): void {
+    this.scheduler.clearIds(ids);
+    if (this.activeId !== null && ids.includes(this.activeId)) this.interrupt();
   }
 
   /** Request a cue. Returns false if the repeat rule dropped it. */
@@ -136,6 +144,7 @@ export class CueEngine {
 
   private interrupt(): void {
     this.activeCategory = null;
+    this.activeId = null;
     if (this.delayedSpeech) clearTimeout(this.delayedSpeech);
     this.delayedSpeech = null;
     if (this.speaking) this.adapters.speech.stop();
@@ -165,7 +174,10 @@ export class CueEngine {
     const policy = channelPolicy(this.state);
     const now = this.now();
     const finished = once(cue.onFinished);
-    if (cue.text !== undefined || cue.earcon !== undefined) this.activeCategory = cue.category;
+    if (cue.text !== undefined || cue.earcon !== undefined) {
+      this.activeCategory = cue.category;
+      this.activeId = cue.id;
+    }
 
     if (cue.haptic && cue.haptic !== 'none' && policy.haptics) {
       this.adapters.playHaptic(cue.haptic);

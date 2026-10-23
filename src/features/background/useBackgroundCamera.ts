@@ -29,6 +29,7 @@ import {
 } from './model';
 import { loadObjectResources } from './resources';
 
+const WARNING_IDS = ['background.bright', 'background.person', 'background.clutter'];
 const RESOLUTION = { width: 640, height: 480 };
 
 type FacePacket = Pick<Face, 'bounds' | 'trackingId'>;
@@ -160,7 +161,7 @@ export function useBackgroundCamera(
         light.state === 'backlit',
         at,
       );
-      if (!warnings.length) cues.clearCategory('background');
+      if (!warnings.length) cues.clearIds(WARNING_IDS);
       for (const key of warnings)
         if (
           at - (lastCue.current.get(key) ?? -Infinity) >= 10000 &&
@@ -308,7 +309,7 @@ export function useBackgroundCamera(
       if (Date.now() - lastPacket.current > 2500) {
         setObjects([]);
         selected.current = null;
-        cues.clearCategory('background');
+        cues.clearIds(WARNING_IDS);
       }
     };
     update();

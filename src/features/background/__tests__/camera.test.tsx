@@ -3,7 +3,9 @@ import { useFrameOutput, type CameraRef, type Frame } from 'react-native-vision-
 import { loadObjectResources } from '../resources';
 import { useBackgroundCamera } from '../useBackgroundCamera';
 jest.mock('../resources', () => ({ loadObjectResources: jest.fn() }));
-jest.mock('@/cues', () => ({ cues: { say: jest.fn(() => true), clearCategory: jest.fn() } }));
+jest.mock('@/cues', () => ({
+  cues: { say: jest.fn(() => true), clearCategory: jest.fn(), clearIds: jest.fn() },
+}));
 const camera = {
   current: {
     preview: {},
