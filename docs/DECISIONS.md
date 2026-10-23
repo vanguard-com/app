@@ -319,3 +319,28 @@ The brief permits post-recording voice analysis when microphone sharing is unrel
 ### D39. Feedback history and speech ownership
 
 Only aggregates for the latest 20 recordings persist in MMKV. No frames, raw landmarks, PCM, transcript or individual voice pitch samples are retained. Temporary WAV chunks are cleaned after analysis/cancel/failure. A recognizer lease prevents file transcripts from being interpreted as commands. Retake removes the app recording and its history entry, preserving any Photos copy.
+
+## Phase 5: background recognition
+
+### D40. One shared Framing/Background analysis stream
+
+Background detection is bundled COCO SSD MobileNet, Apache 2.0, through the existing fast-tflite runtime. Framing's face detector now runs inside the same frame output at 12 Hz, with object inference at 1 Hz; Lighting and Feedback replace that output as before. This preserves Android's single ImageAnalysis constraint while allowing priority 3 warnings during Framing. Two observations establish a stable object, with a 2.5-second expiry. COCO has no window/bookshelf category, so backlight is described as a bright area, possibly a window. See PHASE_5.md for provenance, evidence and phone calibration requirements.
+
+### D41. Runtime support is distinct from a validated downloadable model
+
+Checked npm latest `llama.rn@0.13.0-rc.8` and its published source on 23 October 2026. The package contains Gemma 3n vision encoder code, but its example Gemma catalogue has no projector. Hugging Face remains blocked by the cloud environment proxy; the saved network draft needs review/publishing. Therefore no current Hugging Face pair or Gemma phone inference is claimed verified. Downloads resolve hashed pairs from the configured publisher, pin both files to one revision, and validate native vision support before installation. Text-only Gemma files cannot enable Detailed. A missing pair keeps Standard; SmolVLM2 2.2B is the proposed supported alternative, pending the owner's decision if Gemma vision cannot be validated. Do not silently substitute it.
+
+### D42. Optional downloads, licences and memory limits
+
+Standard is SmolVLM2 500M (Apache 2.0); optional Detailed requests Gemma 3n E2B. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including the prohibited use policy at https://ai.google.dev/gemma/prohibited_use_policy. The same required notice is in About and model installation information. No Gemma weights are distributed in the repository. The user reviews terms before explicitly confirming a download; Google does not endorse Lumi. Combined sizes come from validated publisher metadata. Wi-Fi default, 20-percent progress announcements, cancellation, native streaming SHA-256 and iOS backup exclusion apply to both files. Gates require 3/8 GiB RAM for Standard/Detailed and a 1 GiB storage reserve; unsupported phones keep the bundled list. Local requests release context memory afterward. No paid/cloud AI is used.
+
+### D43. Scene benchmark observations
+
+The hidden phone benchmark records the exact revision, device/OS, total and component timings, and output for each installed model using the same gallery photograph. Only the latest 20 result records persist locally, with an explicit Clear action; photos are never retained in results. Gallery originals remain untouched.
+
+| Model                  | Physical phone tested          | Time and quality result                           |
+| ---------------------- | ------------------------------ | ------------------------------------------------- |
+| Standard SmolVLM2 500M | None in this cloud environment | Not measured; five-second target unverified       |
+| Detailed Gemma 3n E2B  | None in this cloud environment | Downloadable vision pair and inference unverified |
+
+Native model-source inspection and a real CPU COCO detector smoke check are documented in PHASE_5.md. They are not substitutes for these phone results. Populate this table from the hidden screen before Phase 5 acceptance.

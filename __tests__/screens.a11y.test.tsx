@@ -1,6 +1,5 @@
 import { fireEvent } from '@testing-library/react-native';
 import { useFrameOutput } from 'react-native-vision-camera';
-import { createFaceDetectorOutput } from 'react-native-vision-camera-face-detector';
 
 import { act, renderRouter, screen } from 'expo-router/testing-library';
 
@@ -25,6 +24,10 @@ const SCREENS: { url: string; maxControls: number; minControls?: number }[] = [
   { url: '/settings/feedback-types', maxControls: 4 },
   { url: '/settings/recording', maxControls: 4 },
   { url: '/settings/more', maxControls: 4 },
+  { url: '/settings/models', maxControls: 4 },
+  { url: '/settings/downloads', maxControls: 4 },
+  { url: '/settings/information', maxControls: 4 },
+  { url: '/settings/scene-model', maxControls: 4 },
   // About only has the version text (5 taps toggles the hidden debug overlay).
   { url: '/settings/about', maxControls: 4, minControls: 0 },
 ];
@@ -96,12 +99,11 @@ describe('camera guidance mode controls', () => {
     useSettings.getState().update({ onboardingComplete: true });
     renderRouter('./app', { initialUrl: '/camera' });
     await act(async () => {});
-    const framing = jest.mocked(createFaceDetectorOutput).mock.results.at(-1)!.value;
-    expect(screen.getByTestId('vision-camera').props.outputs).toContain(framing);
+    expect(screen.getByTestId('vision-camera').props.outputs).toHaveLength(2);
     fireEvent.press(screen.getByTestId('camera-mode'));
     expect(screen.getByTestId('camera-scan').props.accessibilityLabel).toBe('Light scan');
     const outputs = screen.getByTestId('vision-camera').props.outputs;
-    expect(outputs).not.toContain(framing);
+    expect(outputs).toHaveLength(2);
     expect(outputs).toContain(jest.mocked(useFrameOutput).mock.results.at(-1)!.value);
     expect(interactiveElements()).toHaveLength(6);
     fireEvent.press(screen.getByTestId('camera-mode'));
@@ -109,6 +111,12 @@ describe('camera guidance mode controls', () => {
     expect(screen.getByTestId('camera-mode').props.accessibilityLabel).toBe('Mode: Feedback');
     expect(screen.getByTestId('vision-camera').props.outputs).toHaveLength(2);
     fireEvent.press(screen.getByTestId('camera-mode'));
-    expect(screen.getByTestId('vision-camera').props.outputs).toContain(framing);
+    expect(screen.getByTestId('camera-mode').props.accessibilityLabel).toBe('Mode: Background');
+    expect(screen.getByTestId('camera-describe')).toBeTruthy();
+    expect(screen.getByTestId('vision-camera').props.outputs).toHaveLength(2);
+    expect(interactiveElements()).toHaveLength(6);
+    fireEvent.press(screen.getByTestId('camera-mode'));
+    expect(screen.getByTestId('camera-mode').props.accessibilityLabel).toBe('Mode: Framing');
+    expect(screen.getByTestId('vision-camera').props.outputs).toHaveLength(2);
   });
 });

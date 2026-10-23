@@ -1,7 +1,8 @@
 import { useRef } from 'react';
 import { Pressable, Text } from 'react-native';
 
-import { Screen, ScreenHeader } from '@/components';
+import { router } from 'expo-router';
+import { AccessibleButton, Screen, ScreenHeader } from '@/components';
 import { APP_VERSION, DEBUG_UNLOCK_TAPS, SUPPORT_EMAIL } from '@/config/app';
 import { strings } from '@/i18n';
 import { useSettings } from '@/store/settingsStore';
@@ -49,6 +50,13 @@ export default function AboutScreen() {
       <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>
         {t.aboutBody}
       </Text>
+      {debugOverlay ? (
+        <AccessibleButton
+          label={strings.background.benchmark.label}
+          hint={strings.background.benchmark.hint}
+          onPress={() => router.push('/benchmark')}
+        />
+      ) : null}
       <Text
         selectable
         style={[typography.body, { color: colors.textPrimary, marginTop: spacing.md }]}

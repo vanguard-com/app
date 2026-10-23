@@ -18,6 +18,8 @@ export type VoiceCommand =
   | { type: 'cancelLightScan' }
   | { type: 'whatIsBehindMe' }
   | { type: 'describeBackground' }
+  | { type: 'cancelScene' }
+  | { type: 'deleteSceneModel'; model: 'standard' | 'detailed' }
   | { type: 'feedback'; on: boolean }
   | { type: 'focusOn'; subject: string }
   | { type: 'installDetailedMode' }
@@ -32,6 +34,14 @@ interface Rule {
 
 // Order matters: more specific phrases first.
 const RULES: Rule[] = [
+  {
+    pattern: /\bcancel (the )?(scene description|background description)\b/,
+    build: () => ({ type: 'cancelScene' }),
+  },
+  {
+    pattern: /\bdelete (standard|detailed) mode\b/,
+    build: (m) => ({ type: 'deleteSceneModel', model: m[1] as 'standard' | 'detailed' }),
+  },
   { pattern: /\b(analyze|analyse) (my |the )?voice\b/, build: () => ({ type: 'analyseVoice' }) },
   { pattern: /\bcancel (the )?voice analysis\b/, build: () => ({ type: 'cancelVoiceAnalysis' }) },
   { pattern: /\bstop (the )?(recording|video)\b/, build: () => ({ type: 'stopRecording' }) },
@@ -111,6 +121,12 @@ export const COMMAND_HINTS = [
   'cancel light scan',
   'what is behind me',
   'describe my background',
+  'cancel scene description',
+  'install detailed mode',
+  'use standard mode',
+  'use detailed mode',
+  'delete standard mode',
+  'delete detailed mode',
   'feedback on',
   'feedback off',
   'Lumi help',

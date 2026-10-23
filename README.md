@@ -13,8 +13,8 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 | 1     | Cue engine, camera, recording, save                           | Done, needs phone check                     |
 | 2     | Spatial sensing, subject setup, lens switching                | Implemented (face-first), needs phone check |
 | 3     | Lighting check, scan mode                                     | Implemented, needs phone check              |
-| 4     | Live feedback                                                 | Implemented, needs native/phone checks      |
-| 5     | Background recognition, scene description                     |                                             |
+| 4     | Live feedback                                                 | Implemented, native builds passed; phone checks pending      |
+| 5     | Background recognition, scene description                     | Draft implementation; model/phone validation pending |
 | 6     | Review, sharing, voice commands                               |                                             |
 | 7     | Onboarding, settings polish, accessibility audit, performance |                                             |
 | 8     | Store readiness                                               |                                             |
@@ -183,3 +183,5 @@ recognition is not available. See [docs/PRIVACY.md](docs/PRIVACY.md) and decisio
 Phase 3 lighting and light scan details, limitations and native rebuild requirements are in [docs/PHASE_3.md](docs/PHASE_3.md). Follow the Phase 3 section in [docs/TESTING.md](docs/TESTING.md) before merging.
 
 Phase 4 adds on-device Feedback mode and optional local voice measurements after recording. See [docs/PHASE_4.md](docs/PHASE_4.md) for the model, audio fallback, platform limits and phone acceptance requirements.
+
+Phase 5 adds background object lists and warnings, consented local model downloads, scene descriptions and a hidden phone benchmark. See [docs/PHASE_5.md](docs/PHASE_5.md) for current Hugging Face access limits, Gemma vision compatibility checks and the unverified five-second phone target.

@@ -9,14 +9,15 @@ export function posePointToFrame(
   height: number,
   orientation: CameraOrientation,
   mirrored: boolean,
+  inputSize = 192,
 ): { x: number; y: number } {
   'worklet';
   const sideways = orientation === 'left' || orientation === 'right';
   const uprightWidth = sideways ? height : width,
     uprightHeight = sideways ? width : height;
-  const scale = Math.min(192 / uprightWidth, 192 / uprightHeight);
-  let x = (point.x * 192 - (192 - uprightWidth * scale) / 2) / (uprightWidth * scale);
-  let y = (point.y * 192 - (192 - uprightHeight * scale) / 2) / (uprightHeight * scale);
+  const scale = Math.min(inputSize / uprightWidth, inputSize / uprightHeight);
+  let x = (point.x * inputSize - (inputSize - uprightWidth * scale) / 2) / (uprightWidth * scale);
+  let y = (point.y * inputSize - (inputSize - uprightHeight * scale) / 2) / (uprightHeight * scale);
   if (orientation === 'right') [x, y] = [y, 1 - x];
   else if (orientation === 'down') [x, y] = [1 - x, 1 - y];
   else if (orientation === 'left') [x, y] = [1 - y, x];

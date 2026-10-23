@@ -1,13 +1,10 @@
-import { Linking } from 'react-native';
 import { router } from 'expo-router';
 
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
-import { PRIVACY_POLICY_URL } from '@/config/app';
 import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
 import { useScreenAnnouncement } from '@/utils/accessibility';
 
-// Scene description model selection joins this screen in Phase 5.
 export default function MoreSettings() {
   const { spacing } = useTheme();
   const t = strings.settings;
@@ -17,6 +14,12 @@ export default function MoreSettings() {
     <Screen>
       <ScreenHeader title={t.groups.more.label} />
       <AccessibleButton
+        label={strings.background.models.label}
+        hint={strings.background.models.hint}
+        onPress={() => router.push('/settings/models')}
+        style={{ marginBottom: spacing.md }}
+      />
+      <AccessibleButton
         label={t.replayTutorial.label}
         hint={t.replayTutorial.hint}
         onPress={() => router.push({ pathname: '/welcome', params: { replay: '1' } })}
@@ -24,20 +27,9 @@ export default function MoreSettings() {
         testID="setting-replay-tutorial"
       />
       <AccessibleButton
-        label={t.privacy.label}
-        hint={t.privacy.hint}
-        role="link"
-        onPress={() => {
-          Linking.openURL(PRIVACY_POLICY_URL).catch(() => {});
-        }}
-        style={{ marginBottom: spacing.md }}
-        testID="setting-privacy"
-      />
-      <AccessibleButton
-        label={t.about.label}
-        hint={t.about.hint}
-        onPress={() => router.push('/settings/about')}
-        testID="setting-about"
+        label={strings.background.information.label}
+        hint={strings.background.information.hint}
+        onPress={() => router.push('/settings/information')}
       />
     </Screen>
   );

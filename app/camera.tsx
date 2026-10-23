@@ -5,6 +5,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera, VisionCamera, useCameraDevice, type CameraRef } from 'react-native-vision-camera';
 
+import { useBackgroundCamera } from '@/features/background/useBackgroundCamera';
+import { useSceneDescription } from '@/features/background/useSceneDescription';
+import { useModels, refreshModels, deleteModel } from '@/features/background/models';
 import { applyAudioSession } from '@/audio/audioSession';
 import { AccessibleButton, StatusBorder } from '@/components';
 import { cues } from '@/cues';
@@ -75,7 +78,49 @@ export default function CameraScreen() {
     facing,
     screenLive && cameraAllowed && cameraReady && subject.kind === 'face' && mode === 'framing',
     previewSize,
+    true,
   );
+  const background = useBackgroundCamera(
+    cameraRef,
+    screenLive && cameraAllowed && cameraReady && (mode === 'framing' || mode === 'background'),
+    facing,
+    previewSize,
+    framing.receiveFaces,
+    mode === 'framing',
+  );
+  const scene = useSceneDescription(
+    cameraRef,
+    screenLive && cameraAllowed && cameraReady && phase === 'idle',
+    background.summary,
+  );
+  const backgroundRequested = useRef(false);
+  const speakBackground = background.speakStatus;
+  useEffect(() => {
+    if (
+      backgroundRequested.current &&
+      background.objects.length &&
+      screenLive &&
+      mode === 'background'
+    ) {
+      backgroundRequested.current = false;
+      speakBackground();
+    }
+  }, [background.objects, speakBackground, screenLive, mode]);
+  useEffect(() => {
+    if (!screenLive || mode !== 'background') {
+      backgroundRequested.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (backgroundRequested.current) {
+        backgroundRequested.current = false;
+        speakBackground();
+      }
+    }, 2500);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [screenLive, mode, speakBackground]);
   const lightingActive = screenLive && cameraAllowed && cameraReady && mode === 'lighting';
   const scan = useLightScan(lightingActive, phase === 'idle');
   const lighting = useLighting(
@@ -132,24 +177,31 @@ export default function CameraScreen() {
           )
         : strings.lighting.states[lighting.result.state];
   const guidanceText =
-    mode === 'lighting'
-      ? lightingText
-      : mode === 'feedback'
-        ? !liveFeedback
-          ? strings.feedback.off
-          : strings.feedback.status(feedback.observation, feedback.poseStatus)
-        : framing.statusText;
+    mode === 'background'
+      ? background.status === 'unavailable'
+        ? strings.background.unavailable
+        : background.summary()
+      : mode === 'lighting'
+        ? lightingText
+        : mode === 'feedback'
+          ? !liveFeedback
+            ? strings.feedback.off
+            : strings.feedback.status(feedback.observation, feedback.poseStatus)
+          : framing.statusText;
   const guidanceStatus =
-    mode === 'lighting'
-      ? lighting.result.state === 'good' && !scan.running
-        ? 'good'
-        : 'adjust'
-      : mode === 'feedback'
-        ? 'adjust'
-        : framing.result.status;
+    mode === 'background'
+      ? 'adjust'
+      : mode === 'lighting'
+        ? lighting.result.state === 'good' && !scan.running
+          ? 'good'
+          : 'adjust'
+        : mode === 'feedback'
+          ? 'adjust'
+          : framing.result.status;
 
   useEffect(() => {
     setMode('framing');
+    void refreshModels();
   }, [setMode]);
 
   useScreenAnnouncement(t.screenAnnouncement);
@@ -227,9 +279,10 @@ export default function CameraScreen() {
         return;
       }
       cameraRef.current?.cancelZoomAnimation();
+      scene.cancel();
       recorder.start();
     }
-  }, [cameraReady, recorder]);
+  }, [cameraReady, recorder, scene]);
 
   const flip = useCallback(() => {
     if (useSession.getState().recordingPhase !== 'idle') {
@@ -261,6 +314,80 @@ export default function CameraScreen() {
     (command: VoiceCommand) => {
       const current = useSession.getState().recordingPhase;
       switch (command.type) {
+        case 'whatIsBehindMe':
+          if (
+            useSession.getState().mode === 'framing' ||
+            useSession.getState().mode === 'background'
+          ) {
+            speakBackground();
+            return;
+          }
+          if (current !== 'idle') {
+            cues.say({
+              id: 'background.busy',
+              category: 'system',
+              text: strings.background.idleOnly,
+              force: true,
+            });
+            return;
+          }
+          backgroundRequested.current = true;
+          setMode('background');
+          speakBackground();
+          return;
+        case 'describeBackground':
+          if (current !== 'idle') {
+            cues.say({
+              id: 'background.busy',
+              category: 'system',
+              text: strings.background.idleOnly,
+              force: true,
+            });
+            return;
+          }
+          void scene.describe();
+          return;
+        case 'cancelScene':
+          scene.cancel();
+          return;
+        case 'installDetailedMode':
+        case 'useSceneModel':
+        case 'deleteSceneModel': {
+          if (current !== 'idle') {
+            cues.say({
+              id: 'background.busy',
+              category: 'system',
+              text: strings.background.idleOnly,
+              force: true,
+            });
+            return;
+          }
+          const model = command.type === 'installDetailedMode' ? 'detailed' : command.model;
+          if (command.type === 'deleteSceneModel') {
+            scene.cancel();
+            void deleteModel(model)
+              .then(() =>
+                cues.say({
+                  id: 'model.deleted',
+                  category: 'system',
+                  text: strings.background.deleted,
+                  force: true,
+                }),
+              )
+              .catch(() => {});
+            return;
+          }
+          if (command.type === 'useSceneModel' && useModels.getState().installed[model]) {
+            useSettings.getState().update({ sceneModel: model });
+            cues.say({
+              id: 'model.selected',
+              category: 'system',
+              text: strings.background.modelNames[model],
+              force: true,
+            });
+          } else router.push({ pathname: '/settings/scene-model', params: { model } });
+          return;
+        }
         case 'startRecording':
           if (current === 'idle') toggleRecording();
           return;
@@ -332,17 +459,26 @@ export default function CameraScreen() {
           cues.say({ id: 'sys.notYet', category: 'system', text: strings.voice.notYet });
       }
     },
-    [flip, toggleRecording, setMode, speakLightingStatus, beginScan, cancelScan],
+    [
+      flip,
+      toggleRecording,
+      setMode,
+      speakLightingStatus,
+      beginScan,
+      cancelScan,
+      speakBackground,
+      scene,
+    ],
   );
 
   const outputs = useMemo(
     () => [
       ...recorder.outputs,
-      ...(subject.kind === 'face' && mode === 'framing' ? [framing.output] : []),
+      ...(mode === 'framing' || mode === 'background' ? [background.output] : []),
       ...(mode === 'lighting' ? [lighting.output] : []),
       ...(mode === 'feedback' ? [feedback.output] : []),
     ],
-    [recorder.outputs, framing.output, subject.kind, mode, lighting.output, feedback.output],
+    [recorder.outputs, background.output, mode, lighting.output, feedback.output],
   );
   useHardwareButton(screenLive && cameraReady, toggleRecording);
   useVoiceCommands(
@@ -573,10 +709,28 @@ export default function CameraScreen() {
           text={t.modes[mode]}
           disabled={phase !== 'idle'}
           onPress={() =>
-            setMode(mode === 'framing' ? 'lighting' : mode === 'lighting' ? 'feedback' : 'framing')
+            setMode(
+              mode === 'framing'
+                ? 'lighting'
+                : mode === 'lighting'
+                  ? 'feedback'
+                  : mode === 'feedback'
+                    ? 'background'
+                    : 'framing',
+            )
           }
           testID="camera-mode"
         />
+        {mode === 'background' ? (
+          <AccessibleButton
+            scheme="dark"
+            label={scene.busy ? strings.background.cancel.label : strings.background.describe.label}
+            hint={scene.busy ? strings.background.cancel.hint : strings.background.describe.hint}
+            disabled={phase !== 'idle'}
+            onPress={scene.busy ? scene.cancel : () => void scene.describe()}
+            testID="camera-describe"
+          />
+        ) : null}
         {mode === 'lighting' ? (
           <AccessibleButton
             scheme="dark"
