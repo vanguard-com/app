@@ -1,4 +1,10 @@
-import { parseManifest, progressMilestone, shortDescription, supportsModel } from '../catalog';
+import {
+  resolveManifest,
+  parseManifest,
+  progressMilestone,
+  shortDescription,
+  supportsModel,
+} from '../catalog';
 const file = (rfilename: string) => ({ rfilename, lfs: { size: 1000, sha256: 'a'.repeat(64) } });
 const metadata = {
   sha: 'b'.repeat(40),
@@ -47,5 +53,18 @@ it('reports every 20 percent boundary, bounded at 100', () => {
 it('limits generated text to three sentences and removes special tokens', () => {
   expect(shortDescription('<|im_start|>A chair. A lamp! A shelf? A cat.')).toBe(
     'A chair. A lamp! A shelf?',
+  );
+});
+
+it('uses the reviewed Standard and Gemma vision pairs with exact combined sizes', async () => {
+  const standard = await resolveManifest('standard');
+  const detailed = await resolveManifest('detailed');
+  expect(standard.bytes).toBe(545593888);
+  expect(detailed.bytes).toBe(3906704128);
+  expect(standard.revision).toBe('ccd7aae53bcb1997355c2f094959e72b3642ce17');
+  expect(detailed.repo).toBe('shreyashmakadia/gemma-3n-E2B-it-vision-GGUF');
+  expect(detailed.files[1].name).toBe('mmproj-gemma-3n-E2B-it-f16.gguf');
+  expect(detailed.files.every((file) => file.url.includes(`/resolve/${detailed.revision}/`))).toBe(
+    true,
   );
 });

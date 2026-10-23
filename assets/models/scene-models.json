@@ -1,0 +1,36 @@
+{
+  "standard": {
+    "repo": "ggml-org/SmolVLM2-500M-Video-Instruct-GGUF",
+    "revision": "ccd7aae53bcb1997355c2f094959e72b3642ce17",
+    "license": "Apache-2.0",
+    "files": [
+      {
+        "name": "SmolVLM2-500M-Video-Instruct-Q8_0.gguf",
+        "bytes": 436808704,
+        "sha256": "6f67b8036b2469fcd71728702720c6b51aebd759b78137a8120733b4d66438bc"
+      },
+      {
+        "name": "mmproj-SmolVLM2-500M-Video-Instruct-Q8_0.gguf",
+        "bytes": 108785184,
+        "sha256": "921dc7e259f308e5b027111fa185efcbf33db13f6e35749ddf7f5cdb60ef520b"
+      }
+    ]
+  },
+  "detailed": {
+    "repo": "shreyashmakadia/gemma-3n-E2B-it-vision-GGUF",
+    "revision": "3d14b21e370bab818bcd3bb3fbcd9b47a76d1cd9",
+    "license": "Gemma Terms of Use",
+    "files": [
+      {
+        "name": "gemma-3n-E2B-it-Q4_K_M.gguf",
+        "bytes": 3308902528,
+        "sha256": "e0a7ad1b6c842083a11d79280b4022cb805138734f3d6b3b7295ffb0e272b006"
+      },
+      {
+        "name": "mmproj-gemma-3n-E2B-it-f16.gguf",
+        "bytes": 597801600,
+        "sha256": "1eedcd3060d598be976f7cb60f9c8de95e71bee730b4742f032a43c925fc05ee"
+      }
+    ]
+  }
+}

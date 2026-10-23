@@ -1,3 +1,4 @@
+import reviewedModels from '../../../assets/models/scene-models.json';
 import type { SceneModel } from '@/store/settingsStore';
 
 export interface ModelFile {
@@ -20,7 +21,7 @@ export const MODEL_SOURCES = {
     projector: /^mmproj.*(?:Q8_0|f16)\.gguf$/i,
   },
   detailed: {
-    repo: 'unsloth/gemma-3n-E2B-it-GGUF',
+    repo: 'shreyashmakadia/gemma-3n-E2B-it-vision-GGUF',
     model: /^gemma-3n-E2B-it-Q4_K_M\.gguf$/i,
     projector: /^mmproj.*(?:BF16|F16|Q8_0)\.gguf$/i,
   },
@@ -84,12 +85,16 @@ export async function resolveManifest(
   kind: SceneModel,
   signal?: AbortSignal,
 ): Promise<ModelManifest> {
-  const response = await fetch(
-    `https://huggingface.co/api/models/${MODEL_SOURCES[kind].repo}?blobs=true`,
-    { signal },
-  );
-  if (!response.ok) throw new Error('Model catalog unavailable');
-  return parseManifest(kind, await response.json());
+  if (signal?.aborted) throw new Error('cancelled');
+  const reviewed = reviewedModels[kind];
+  if (reviewed.repo !== MODEL_SOURCES[kind].repo) throw new Error('Unreviewed publisher');
+  return parseManifest(kind, {
+    sha: reviewed.revision,
+    siblings: reviewed.files.map((file) => ({
+      rfilename: file.name,
+      lfs: { size: file.bytes, sha256: file.sha256 },
+    })),
+  });
 }
 export function supportsModel(
   kind: SceneModel,

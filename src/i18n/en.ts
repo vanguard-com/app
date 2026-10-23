@@ -135,7 +135,7 @@ export const en = {
       `${name} needs a ${size} download, including its vision projector. Your photos stay on this phone. Download only if you agree to the model licence.`,
     standardLicense: 'SmolVLM2 uses the Apache 2.0 licence.',
     gemmaLicense:
-      'Gemma is provided under the Gemma Terms of Use, including its prohibited use policy. Google does not endorse Lumi. Review the terms before installing.',
+      'Detailed uses a community conversion and quantization of Google Gemma 3n by shreyashmakadia. Gemma is provided under the Gemma Terms of Use, including its prohibited use policy. Google does not endorse Lumi. Review the terms before installing.',
     licence: { label: 'Read model licence', hint: 'Opens the model licence in your browser' },
     download: {
       label: 'Download model',
@@ -530,7 +530,7 @@ export const en = {
     version: (v: string) => `Version ${v}`,
     contact: (email: string) => `Contact: ${email}`,
     aboutBody:
-      'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Posture uses Google MoveNet Lightning, licensed under Apache 2.0. The model is bundled and runs on your phone. Voice measurements use saved audio locally; speaking pace needs on-device recognition. Background detection uses TensorFlow COCO SSD MobileNet under Apache 2.0. Standard descriptions use SmolVLM2 under Apache 2.0. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including its prohibited use policy. Model downloads are optional. Google does not endorse Lumi.',
+      'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Posture uses Google MoveNet Lightning, licensed under Apache 2.0. The model is bundled and runs on your phone. Voice measurements use saved audio locally; speaking pace needs on-device recognition. Background detection uses TensorFlow COCO SSD MobileNet under Apache 2.0. Standard descriptions use SmolVLM2 under Apache 2.0. Detailed uses a community GGUF conversion and quantization of Google Gemma 3n by shreyashmakadia. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including its prohibited use policy. Model downloads are optional. Google does not endorse Lumi.',
     debugEnabled: 'Debug overlay on',
     debugDisabled: 'Debug overlay off',
   },
