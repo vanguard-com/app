@@ -17,7 +17,7 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 | 5     | Background recognition, scene description                     | Implemented; phone validation pending                     |
 | 6     | Review, sharing, voice commands                               | Implemented; native builds passed; phone checks pending   |
 | 7     | Onboarding, settings polish, accessibility audit, performance | Implemented; full reader/phone performance checks pending |
-| 8     | Store readiness                                               |                                                           |
+| 8     | Store readiness                                               | Prepared; signed builds, store assets and phone acceptance pending |
 
 Phase 6 adds Review's Play, Retake, Save and Share actions. Play includes optional recorded-voice
 analysis after pausing. Share (or “post video” on Review) opens the phone's share sheet for the
@@ -27,6 +27,10 @@ See [Phase 6 behavior and phone checks](docs/PHASE_6.md).
 Phase 7 adds spoken lessons, guided access setup, practice without saving a recording, App access
 and Framing preferences in Settings, scalable camera controls and reduced-motion navigation.
 See [Phase 7 acceptance](docs/PHASE_7.md) and the [accessibility audit](docs/ACCESSIBILITY_AUDIT.md).
+
+Phase 8 prepares release profiles, native release checks, listing and privacy disclosures.
+See [release instructions](docs/RELEASE.md), [Phase 8 gates](docs/PHASE_8.md) and the
+[privacy worksheet](docs/STORE_PRIVACY.md). No store submission has been made.
 
 ## Requirements
 
@@ -141,8 +145,8 @@ internal testing is set up in Phase 8 once store accounts are connected.
 
 ## Native code
 
-Lumi has one small native module of its own, `modules/lumi-hardware-buttons` (volume button
-presses, see docs/DECISIONS.md D23). Expo links it automatically. After pulling changes that add
+Lumi has local native modules for volume buttons, saved-audio extraction and model-file
+checksums/backup exclusion. Expo links them automatically. After pulling changes that add
 native code, rebuild the app (`npx expo run:ios --device` / `npx expo run:android --device`, or
 install the new APK); `npm start` alone is not enough.
 
@@ -170,8 +174,9 @@ src/
   utils/                Accessibility helpers, time formatting
 assets/models/          Bundled TFLite models (GGUF models download at runtime)
 docs/                   DECISIONS, TESTING, PRIVACY, STORE_LISTING
-modules/                Lumi's own native module (volume buttons)
-scripts/                Icon generator
+modules/                Local volume, audio and model-file native modules
+plugins/                Release-only native build configuration
+scripts/                Asset helpers and release verification
 ```
 
 Pure logic (framing math, lighting math, cue priority) stays in plain TypeScript without React
@@ -185,9 +190,11 @@ imports so Jest can test it.
 
 ## Privacy
 
-No accounts, ads, analytics or cloud AI. Video and images never leave the phone. Voice commands
-use the phone's own speech recognition, which may use Apple or Google servers when on device
-recognition is not available. See [docs/PRIVACY.md](docs/PRIVACY.md) and decision D19.
+No accounts, ads or cloud AI. Camera analysis runs locally. The existing Google ML Kit face
+SDK can send diagnostics and usage metrics; the owner approved keeping it with disclosures
+on 24 October 2026. Live commands can use Apple/Android speech services; optional model
+downloads contact Hugging Face. Sharing and system photo/backup sync can transfer media to
+services the user chooses. See [the policy](docs/PRIVACY.md) and [store worksheet](docs/STORE_PRIVACY.md).
 
 Phase 3 lighting and light scan details, limitations and native rebuild requirements are in [docs/PHASE_3.md](docs/PHASE_3.md). Follow the Phase 3 section in [docs/TESTING.md](docs/TESTING.md) before merging.
 

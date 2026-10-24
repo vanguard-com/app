@@ -1,97 +1,122 @@
 # Lumi Privacy Policy
 
-Effective date: [DATE OF FIRST RELEASE]
+Last updated: 24 October 2026
+
 Contact: projectvanguard.sg@gmail.com
 
-Lumi is a camera app that helps blind and low vision people film videos on their own. This policy
-explains what happens to your information when you use Lumi.
+Lumi helps blind and low vision people film videos. This policy describes the current app,
+including services supplied by Apple, Google and Hugging Face.
 
-## Summary
+## Camera, recordings and local analysis
 
-- Lumi does not collect, store on any server, sell or share any personal data.
-- All camera and video analysis runs on your phone. Lumi never uploads your video or images.
-- To understand voice commands, your phone's own speech recognition (Apple or Google) may send your
-  voice to their servers when it cannot do the work on the phone. See "Speech recognition" below.
-- Lumi has no accounts, no ads, no analytics and no tracking.
-- Lumi itself only uses the internet to download AI model files from Hugging Face when you ask
-  for scene descriptions.
+Framing, lighting, posture, object detection and optional scene descriptions run on your phone.
+Lumi does not send camera images, videos, face landmarks or scene prompts to an AI server.
+Face tracking is used to guide framing, not to identify people. Estimates can be wrong.
 
-## What Lumi uses on your phone, and why
+Recordings are stored in Lumi's app storage. With permission, Lumi also adds finished videos to
+Photos. Photos access is add-only; Lumi does not need broad access to your photo library.
+Sharing a video saved in Lumi works without Photos permission. Retake deletes Lumi's copy and
+its summary; a copy already saved to Photos remains under your control.
 
-| Permission         | What Lumi does with it                                                                                           |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| Camera             | Shows and records video, and analyses frames on the phone to guide framing, lighting and background              |
-| Microphone         | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback          |
-| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below                             |
-| Photo library      | Saves your videos to your photos, automatically after recording with add-only permission, or when you retry Save |
+Optional saved-video Voice analysis reads the local recording and extracts temporary audio.
+Loudness and pitch measurements run locally. Pace uses on-device file recognition only; if it
+cannot run locally, pace is unavailable. Temporary audio is deleted after completion,
+cancellation or failure. Transcripts and raw audio samples are not kept as statistics.
 
-You can turn any permission off in your phone's settings. Lumi tells you which features stop working.
+## Google ML Kit diagnostics
 
-## Data stored on your phone
+Lumi currently includes Google ML Kit Face Detection. Google states that images and detection
+results are processed on device and are not sent to Google. The SDK can nevertheless contact
+Google for service maintenance and send technical diagnostics and usage metrics, including:
 
-- Your Lumi settings.
-- Short statistics for your last 20 recordings (for example video length and percentage of time
-  your face was in frame). No images or audio are kept in these statistics.
-- Videos you record, until you delete them. Saved videos go to your photo library, which you control.
-- Downloaded AI model files.
+- Device model, operating system, app identifier and version.
+- A per-installation SDK identifier.
+- Detection latency, API configuration, input/output sizes, feature events and error codes.
 
-This data stays on your phone. On Android, Lumi turns off automatic app backup so it is not copied
-to your Google account. Deleting Lumi deletes all of it except videos you saved to your photos.
+Google uses these metrics to diagnose, maintain and improve its APIs and detect misuse or
+abuse. This SDK activity is separate from camera analysis; offline analysis does not imply
+that the SDK never uses the network. Lumi does not add advertising or an app analytics service.
 
-## Speech recognition
+See [Google's ML Kit terms and privacy information](https://developers.google.com/ml-kit/terms),
+its [Android disclosures](https://developers.google.com/ml-kit/android-data-disclosure),
+its [iOS disclosures](https://developers.google.com/ml-kit/ios-data-disclosure), and
+[Google's Privacy Policy](https://policies.google.com/privacy).
 
-Lumi uses the speech recognition built into your phone for voice commands. Lumi asks for recognition
-on the phone whenever your phone supports it. When it does not, your phone may send live command
-audio to Apple (iPhone) or Google (Android) to turn it into text. Speaking pace from a saved recording
-uses only on-device recognition; it is unavailable when that cannot run locally. Apple or Google handles that audio under their own privacy policies:
+## Live spoken commands
 
-- Apple: https://www.apple.com/legal/privacy/
-- Google: https://policies.google.com/privacy
+Lumi uses the phone's system speech recognizer. It requests on-device recognition when
+supported. Otherwise live command audio may go to Apple or the Android speech provider
+(commonly Google), which returns text. The provider controls its processing and retention;
+Lumi cannot promise that processing is ephemeral. Lumi uses recognized command text locally
+and does not save it.
 
-Lumi only receives the resulting text, uses it on your phone, and does not store it. You can use
-every Lumi feature with buttons instead of voice.
+Listening pauses during playback, sharing and saved-recording analysis, and during filming
+by default. You can use buttons instead of spoken commands and turn off speech/microphone
+access in phone settings. Without microphone access, videos have no sound.
 
-## Model downloads
+- [Apple Privacy Policy](https://www.apple.com/legal/privacy/)
+- [Apple Ask Siri, Dictation & Privacy](https://www.apple.com/legal/privacy/data/en/ask-siri-dictation/)
+- [Google Privacy Policy](https://policies.google.com/privacy)
 
-When you first ask Lumi to describe your background, it asks you before downloading an AI model
-file from Hugging Face (huggingface.co). As with any download, Hugging Face receives your phone's IP
-address and the name of the file requested. Lumi sends no personal data, images or audio with
-the request. By default downloads only happen on Wi Fi.
+Saved-video analysis does not use this server fallback.
 
-## Sharing
+## Optional model downloads
 
-When you choose Share or use the posting command on Review, Lumi opens your phone's share sheet. The app you pick (for example YouTube
-or WhatsApp) receives the locally saved video under its own privacy policy. Photos access is not required for this handoff. Lumi does not upload anything itself and cannot tell whether the receiving app posted the video. Command listening pauses during playback and while the share sheet is open.
+Scene descriptions need a model and its vision projector. Lumi explains the size, licence and
+requirements and asks before downloading. Standard is about 546 MB; Detailed is about 3.91 GB
+and needs a sufficiently capable phone. Both models run locally after installation. Downloads
+use Wi-Fi by default; mobile data is an optional setting. You can cancel and delete models.
 
-## Children
+Downloads contact Hugging Face and its delivery providers over HTTPS. Those providers receive
+ordinary request information such as your IP address, requested filename and network/device
+headers. Their [privacy policy](https://huggingface.co/privacy) describes logging and retention.
+Lumi does not send images, videos, audio or scene prompts with model download requests.
+No Hugging Face account is needed in Lumi.
 
-Lumi does not knowingly collect data from anyone, including children under 13 (or the age set by
-local law), because it collects no data at all.
+## Information kept on your phone
 
-## Changes
+- Preferences, tutorial completion and access-review choices.
+- Aggregated statistics for the latest 20 recordings, such as duration and measured framing,
+  lighting and delivery. No frames, landmarks, transcripts or raw measurements are retained
+  in these statistics.
+- Recordings in Lumi and any copies you save to Photos.
+- Optional downloaded models, verified against pinned checksums.
+- Up to 20 results from the hidden scene benchmark, including generated descriptions,
+  timing, model revision and device/OS information. Clear results deletes these records.
+  Benchmark photo-picker copies are temporary; gallery originals are unchanged.
 
-If this policy changes, the new version will be posted at this address with a new effective date.
+Light scan uses luminance and motion readings in memory. It does not save or upload scan
+headings or light grids. Tutorial/practice actions are not recorded as analytics events.
+Practice can show a permitted camera preview but creates no recording and uses no microphone.
 
-## Contact
+Android automatic app backup is disabled. iOS excludes downloaded models from backup; other
+app documents and settings may be included in Apple backups depending on your system settings.
+Photos may also sync through iCloud Photos, Google Photos or another service you configure.
+These system services are controlled by you and their providers.
 
-Questions: projectvanguard.sg@gmail.com
+Deleting Lumi removes its local app data, subject to any OS backups you control. It does not
+delete copies in Photos, backups, or apps to which you shared a video. SDK/provider data is
+handled under the respective provider policies; contact them for their deletion options.
 
-## Light scanning
+## Sharing and external links
 
-When you request a light scan, Lumi uses motion sensors and a small camera luminance grid to remember brighter directions. These readings are processed in memory on your phone, never uploaded or saved. Motion access is requested only for this feature; declining it does not disable ordinary lighting checks. Scanning stops when cancelled, recording starts, the camera screen closes or the app enters the background.
+Share opens the system share sheet. Only the app you select receives the local video; it may
+upload or publish it under its own privacy policy. Lumi does not perform a direct upload and
+cannot confirm whether that app published your video. Saving to Photos can also cause a
+system photo-cloud sync if you have enabled one.
 
-## Optional live feedback and voice measurements
+Opening privacy, licence or support links opens another app/browser. Its provider may receive
+ordinary network information. If you email support, the address and information you choose to
+send are available to the support team and its email provider. Do not send sensitive recordings
+unless you intend to share them.
 
-Feedback mode estimates head direction, smiles and posture entirely on the phone. Only summary measurements for the latest 20 recordings are kept in Lumi's local settings storage; camera frames, raw landmarks and pose data are not retained or uploaded. Retake removes that video's summary from Lumi.
+## Accounts, advertising and children
 
-Optional Voice analysis, reached through Review and playback, reads the saved video locally, without opening another microphone. Temporary audio chunks are removed after analysis, cancellation or failure. Loudness and pitch stay on the phone. Speaking pace uses only on-device speech recognition when supported; if it is unavailable, Lumi reports pace unavailable rather than sending recorded audio to a server. Transcripts are not saved. The existing Apple/Google speech-service fallback for live commands is unchanged. Aggregate measurements are not calibrated health measurements.
+Lumi has no user accounts, advertising, purchases or advertising tracking. There is no developer
+server receiving your recordings. The third-party processing described above still applies.
+Lumi is a general camera utility; it does not offer a child profile or a social network.
 
-## Background recognition and scene descriptions
+## Changes and contact
 
-Common object detection and optional scene descriptions run on the phone. Live object positions stay in memory. A requested description uses a temporary small camera snapshot, which is removed after completion, failure or cancellation. No image, prompt or output is sent to an AI server. Model downloads contact Hugging Face for the reviewed, pinned model files; these requests disclose ordinary network information such as IP address and requested model name. Both model files are checked before activation. iOS excludes the model directory from backup; Android app backup remains disabled.
-
-The hidden benchmark uses the system photo picker, without broad photo-library access. It preserves original gallery photos and removes its temporary copies. It can store up to 20 local benchmark outputs and timings, including phone/OS and model revision. These outputs may describe the selected photo. Clear results removes them. Ordinary scene descriptions are not retained as benchmark results.
-
-## Tutorial, practice and access choices
-
-The tutorial and practice do not save a recording. After optional access setup, practice can show a local camera preview when you have allowed Camera; it has no microphone, recording or frame-analysis outputs. Pretend button/volume actions stay in memory. On iPhone, volume practice waits for that camera preview; declining Camera leaves the screen-button practice available. We store completion of access review with your local settings so automatic flows do not ask again for skipped access. You can request access explicitly from App access or retry Photos with Save. No tutorial/practice events or permission choices are sent to analytics or a server.
+Updates to this policy will appear at its published address with a revised date. For privacy,
+accessibility or support questions, email projectvanguard.sg@gmail.com.

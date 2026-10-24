@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 
 export const SUPPORT_EMAIL = 'projectvanguard.sg@gmail.com';
 
-// TODO(owner): replace with the URL where docs/PRIVACY.md is hosted on your website.
+// Owner-approved public policy until the website is ready (24 October 2026).
 export const PRIVACY_POLICY_URL = 'https://github.com/vanguard-com/app/blob/main/docs/PRIVACY.md';
 
 export const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';

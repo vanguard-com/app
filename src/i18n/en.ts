@@ -570,7 +570,7 @@ export const en = {
     },
     reasons: {
       camera:
-        'Camera access lets Lumi show and record video and guide framing, lighting and background on your phone.',
+        'Camera access lets Lumi show and record video and guide framing, lighting and background on your phone. Face detection uses Google ML Kit, which can send technical diagnostics and usage metrics to Google. Camera images stay on this phone unless you share or sync them.',
       microphone:
         'Microphone access adds sound to your video and enables spoken commands. Without it, recordings are silent.',
       speech:
@@ -612,7 +612,8 @@ export const en = {
         'Lumi automatically saves each finished video to your photos. Your phone will now ask for permission to add videos. If you decline, the video stays in Lumi and you can retry saving from Review.',
     },
     camera: {
-      explain: 'Lumi needs the camera to see and record you. Your phone will now ask for access.',
+      explain:
+        'Lumi needs the camera to see and record you. Face detection uses Google ML Kit, which can send technical diagnostics and usage metrics to Google. Camera images stay on this phone unless you share or sync them. Your phone will now ask for access.',
       denied:
         'Camera access is off, so Lumi cannot see or record. To allow it, open your phone settings, find Lumi, and allow Camera.',
       screenText: 'Camera access is off',
@@ -714,7 +715,7 @@ export const en = {
     versionHint: 'App version. Repeated activation opens hidden diagnostics for testing.',
     contact: (email: string) => `Contact: ${email}`,
     aboutBody:
-      'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Posture uses Google MoveNet Lightning, licensed under Apache 2.0. The model is bundled and runs on your phone. Voice measurements use saved audio locally; speaking pace needs on-device recognition. Background detection uses TensorFlow COCO SSD MobileNet under Apache 2.0. Standard descriptions use SmolVLM2 under Apache 2.0. Detailed uses a community GGUF conversion and quantization of Google Gemma 3n by shreyashmakadia. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including its prohibited use policy. Model downloads are optional. Google does not endorse Lumi.',
+      'Lumi analyses video on your phone. Sharing and photo-cloud sync can send media to services you choose. Face detection uses Google ML Kit, which can send SDK diagnostics and usage metrics to Google. To understand live commands, your phone may use Apple or an Android speech service. Optional model downloads contact Hugging Face. Read the Privacy policy for these providers and backups. Posture uses Google MoveNet Lightning, licensed under Apache 2.0. The model is bundled and runs on your phone. Voice measurements use saved audio locally; speaking pace needs on-device recognition. Background detection uses TensorFlow COCO SSD MobileNet under Apache 2.0. Standard descriptions use SmolVLM2 under Apache 2.0. Detailed uses a community GGUF conversion and quantization of Google Gemma 3n by shreyashmakadia. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including its prohibited use policy. Model downloads are optional. Google does not endorse Lumi.',
     debugEnabled: 'Debug overlay on',
     debugDisabled: 'Debug overlay off',
   },

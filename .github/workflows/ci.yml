@@ -26,7 +26,7 @@ jobs:
 
       - name: Check formatting and print repair patch
         run: |
-          npx prettier --write app src scripts __tests__ jest.setup.tsx package.json .github/workflows docs
+          npx prettier --write app src scripts __tests__ jest.setup.tsx package.json app.config.js app.json eas.json plugins .github/workflows docs
           git diff
 
       - name: Typecheck
@@ -37,6 +37,9 @@ jobs:
 
       - name: Test
         run: npx jest --ci
+
+      - name: Check development and release configuration
+        run: npm run release:check
 
       - name: Require committed formatting
         run: git diff --exit-code

@@ -9,22 +9,49 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "LUMI_BUILD_PROFILE": "development"
+      },
+      "node": "22.23.4",
+      "ios": {
+        "buildConfiguration": "Debug"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "LUMI_BUILD_PROFILE": "preview"
+      },
+      "node": "22.23.4",
+      "ios": {
+        "buildConfiguration": "Release"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "env": {
+        "LUMI_BUILD_PROFILE": "production"
+      },
+      "node": "22.23.4",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "distribution": "store"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }
