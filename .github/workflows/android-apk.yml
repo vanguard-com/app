@@ -18,9 +18,11 @@ concurrency:
 
 jobs:
   build:
-    name: Build release APK
+    name: Build release APK and AAB
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
+    env:
+      LUMI_BUILD_PROFILE: production
     permissions:
       contents: write
     steps:
@@ -47,9 +49,19 @@ jobs:
       # Release build bundles the JavaScript, so the APK runs without a computer.
       # It is signed with the template's debug keystore, so every build installs over the last one.
       # arm64 only keeps the build fast; every phone Lumi supports is 64 bit ARM.
-      - name: Build APK
+      - name: Build APK and AAB
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease bundleRelease --no-daemon
+
+      - name: Check release permissions and 16 KB support
+        run: |
+          python3 scripts/check-android-release.py \
+            android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml \
+            android/app/build/outputs/apk/release/app-release.apk \
+            android/app/build/outputs/bundle/release/app-release.aab
+          "${ANDROID_HOME}/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/zipalign" \
+            -c -P 16 -v 4 android/app/build/outputs/apk/release/app-release.apk > /tmp/zipalign.log
+          tail -1 /tmp/zipalign.log
 
       - name: Rename APK
         run: |
@@ -63,6 +75,12 @@ jobs:
         with:
           name: lumi-${{ env.SHORT_SHA }}-apk
           path: out/lumi-${{ env.SHORT_SHA }}.apk
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lumi-${{ env.SHORT_SHA }}-aab-test-key
+          path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 14
 
       - name: Publish android-latest pre-release

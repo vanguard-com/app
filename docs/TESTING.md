@@ -244,3 +244,11 @@ Follow [PHASE_6.md](PHASE_6.md#phone-acceptance) for the complete Android/iPhone
 Use [PHASE_7.md](PHASE_7.md#phone-acceptance) for the complete first-use/replay, permission, practice, large-text, keyboard, reduced-motion and two-minute performance checks. The [audit](ACCESSIBILITY_AUDIT.md) distinguishes automated evidence from pending physical results. Camera and recording → Framing preferences now contains Auto lens switching and the safe zone. More → App access contains permission status/help. On iPhone, volume practice needs a permitted running camera preview; practice has no audio/recording outputs.
 
 Run the complete Face → framing/lighting → record → Review → Play/Pause → Save → YouTube share journey with VoiceOver and TalkBack without looking at the screen. Record every instance of sighted assistance, phone/OS/commit, text/display size, reader rate and actual performance observations. The cloud audit does not complete this acceptance gate.
+
+## Phase 8: release builds and store acceptance
+
+Follow [PHASE_8.md](PHASE_8.md) for the ten release-mode phone checks and acceptance record.
+Use [RELEASE.md](RELEASE.md) for clean profile switching, free device builds, dedicated signing
+and account setup. The CI APK/AAB uses a test key; the iOS Release archive is unsigned. Verify
+the eventual signed store artifacts separately. Use [STORE_PRIVACY.md](STORE_PRIVACY.md) and
+the actual signed SDK report for privacy forms; do not copy the former no-data-collected draft.

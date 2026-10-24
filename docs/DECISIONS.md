@@ -268,8 +268,8 @@ Support and privacy contact: projectvanguard.sg@gmail.com. Privacy policy URL is
 
 ## Later phases (to be filled in)
 
-- Production builds still contain the development client, which adds a local network permission
-  text to iOS. Check and exclude it in Phase 8.
+- Phase 8 excludes development launcher/menu native modules and removes development network
+  permissions from preview/production. See D52 and RELEASE.md.
 
 - Microphone sharing between recording and live voice analysis (Phase 4)
 - Gemma licence notice and Gemma 3n vision support in `llama.rn` (Phase 5)
@@ -389,3 +389,51 @@ Framing callbacks still drive every tone/zoom/statistics observation; React publ
 ### D51. Volume practice uses a permitted preview on iPhone
 
 The existing public `AVCaptureEventInteraction` module supports volume capture while a camera session runs (iOS 17.2+); its capability flag alone does not supply such a session. Guided access therefore precedes practice. When Camera is granted, practice opens a visible preview with an empty output array and enables iPhone volume capture only after native preview start. It has no video/audio/frame-analysis output and never creates a recorder or file. Android can handle practice volume keys independently. Denied access, unsupported iOS versions, reader key shortcuts or camera errors retain button practice and Continue. Focus/background cleanup stops preview/key handling; the real Camera requires a new Record action. No private volume APIs or new native modules are introduced. Native key behavior and the transition to real recording remain phone acceptance items.
+
+## Phase 8: store readiness
+
+### D52. Explicit native release profiles and artifact checks
+
+Keep the existing development client for Metro builds. Preview and production exclude the actual
+launcher/menu modules through Expo's Podfile/Gradle autolinking options and strip development
+schemes, iOS local-network/Bonjour and Android overlay access. Release network policy disallows
+arbitrary cleartext. A clean prebuild is required on profile changes. Both standalone Android
+APK/AAB and an unsigned iOS Release archive are checked in GitHub. Android native ELF/zip 16 KB
+alignment and merged permissions are checked. CI Android artifacts use the template test key;
+the iOS archive is unsigned. Neither is a signed-store acceptance result. EAS production remains
+store distribution with remote build counters; Play submission defaults to internal/draft. No
+accounts, credentials, paid service or store submission were created.
+
+### D53. Retain ML Kit with accurate SDK metrics disclosure
+
+Owner decision, 24 October 2026: “Keep ML Kit and disclose its metrics.” Google's ML Kit terms
+and Android/iOS disclosure pages confirm images/results are processed locally but SDK diagnostics
+and utilization metrics can leave the device. The existing face dependency is retained. This
+updates the original blanket no-analytics/no-data-collected requirement for its vendor metrics;
+Lumi adds no advertising, app analytics service or media-upload backend. Camera explanations,
+About, policy and listing now disclose the SDK. D19 live-system-speech fallback remains approved;
+saved-file voice recognition remains local-only.
+
+The Phase 8 privacy worksheet supersedes the old D19 suggestion that not receiving audio in
+Lumi automatically justifies Apple's Data Not Collected label. Store forms must account for
+SDKs, recognition providers and model-host request logs, including provider retention/linkage.
+Ephemeral processing is not assumed. Final signed SDK privacy report and console forms remain
+release steps, not inferred attestations.
+
+### D54. Truthful store copy and owner-controlled distribution
+
+List face-only framing, estimated head direction/posture/lighting, post-recording voice measures,
+optional 546 MB / 3.91 GB downloads, and native sharing that the receiving app controls. Do not
+promise body/object framing, exact gaze/lux, perfect scene descriptions, proven five-second phone
+latency or completed accessibility acceptance. Retain existing opaque Night/Amber icon and adaptive
+assets; real device screenshots and a Play feature graphic remain owner release assets. Final
+website URLs and store account IDs are not invented. Privacy wording distinguishes explicit
+sharing, system Photos/cloud sync and iOS backup from Lumi's local camera analysis.
+
+Owner URL decision, 24 October 2026: use the existing public GitHub privacy policy until the
+website is ready. Store metadata also points at the new GitHub support page once merged.
+Verify anonymous access after merge; no website deployment or extra hosting is required now.
+
+Release profiles explicitly build Android arm64-v8a, matching CI and supported phones;
+development also allows x86_64 emulators. The template's 32-bit defaults are removed because
+llama.rn itself filters those ABIs and cannot provide a working scene runtime for them.

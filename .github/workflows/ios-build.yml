@@ -1,7 +1,7 @@
 name: iOS build
 
-# Compiles the iOS app for the simulator (no signing, no Apple account) to catch Swift and native
-# library errors before anyone builds on a Mac. Free on public repos.
+# Archives the Release device app without signing. This checks native code and bundled JS;
+# App Store distribution still requires the owner's Apple credentials and upload validation.
 
 on:
   pull_request:
@@ -13,9 +13,11 @@ concurrency:
 
 jobs:
   build:
-    name: Compile for iOS device (unsigned)
+    name: Archive iOS Release (unsigned)
     runs-on: macos-latest
     timeout-minutes: 90
+    env:
+      LUMI_BUILD_PROFILE: production
     steps:
       - uses: actions/checkout@v5
 
@@ -44,16 +46,33 @@ jobs:
           xcodebuild \
             -workspace Lumi.xcworkspace \
             -scheme Lumi \
-            -configuration Debug \
+            -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
+            -archivePath ../out/Lumi.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
-            build > build.log 2>&1 || {
+            archive > build.log 2>&1 || {
               grep -E "error:|BUILD FAILED" build.log | head -100
               exit 1
             }
-          grep -E "BUILD SUCCEEDED" build.log
+          grep -E "ARCHIVE SUCCEEDED" build.log
+
+      - name: Check built release app
+        run: |
+          python3 scripts/check-ios-release.py out/Lumi.xcarchive
+          mkdir -p out/release-evidence
+          cp out/Lumi.xcarchive/Products/Applications/Lumi.app/Info.plist out/release-evidence/
+          cp out/Lumi.xcarchive/Products/Applications/Lumi.app/PrivacyInfo.xcprivacy out/release-evidence/
+          cp ios/Podfile.lock out/release-evidence/
+          cp out/ios-privacy-manifests.json out/release-evidence/
+          cp ios/build.log out/release-evidence/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-evidence
+          path: out/release-evidence/
+          retention-days: 14
 
       - name: Keep build log
         if: failure()

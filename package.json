@@ -74,7 +74,8 @@
     "test:ci": "jest --ci --coverage=false",
     "check": "npm run typecheck && npm run lint && npm run test:ci",
     "doctor": "expo-doctor",
-    "postinstall": "node scripts/configure-face-detector.cjs"
+    "postinstall": "node scripts/configure-face-detector.cjs",
+    "release:check": "node scripts/check-release.cjs"
   },
   "private": true,
   "engines": {
