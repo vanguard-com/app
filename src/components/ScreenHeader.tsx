@@ -38,6 +38,7 @@ export function ScreenHeader({ title, hideBack, onBack, announce = true }: Scree
           icon="‹"
           text=""
           onPress={goBack}
+          style={{ marginBottom: 0 }}
           testID="header-back"
         />
       )}

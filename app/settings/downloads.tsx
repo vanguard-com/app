@@ -5,13 +5,15 @@ import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
 export default function DownloadSettings() {
   const t = strings.background,
-    { colors, typography } = useTheme();
+    { colors, typography, spacing } = useTheme();
   const allowed = useSettings((s) => s.allowMobileDataDownloads),
     update = useSettings((s) => s.update);
   return (
     <Screen>
       <ScreenHeader title={t.downloads.label} />
-      <Text style={[typography.body, { color: colors.textPrimary }]}>{t.downloadPolicy}</Text>
+      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
+        {t.downloadPolicy}
+      </Text>
       <ToggleRow
         label={t.mobileData}
         value={allowed}
