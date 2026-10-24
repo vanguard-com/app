@@ -234,6 +234,7 @@ it('preserves a confirmed recording when backgrounded and waits for focus before
   );
   expect(useSession.getState().lastRecording?.durationMs).toBe(1200);
   expect(useSession.getState().lastRecording?.savedToPhotos).toBe(false);
+  expect(useSession.getState().lastRecording?.autoSaveResult).toBeUndefined();
   expect(callbacks.onFinished).not.toHaveBeenCalled();
   rerender({ active: true });
   expect(callbacks.onFinished).toHaveBeenCalledTimes(1);

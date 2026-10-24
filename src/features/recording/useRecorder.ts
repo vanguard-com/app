@@ -161,8 +161,10 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks, a
               : base;
           releaseAudio();
           setPhase('stopping');
-          info.autoSaveResult = await saveToPhotos(uri, false, attempt.photos.signal);
-          info.savedToPhotos = info.autoSaveResult === 'saved';
+          const saved = await saveToPhotos(uri, false, attempt.photos.signal);
+          // Leaving during a save is not evidence that Photos permission was denied.
+          if (saved === 'saved' || !attempt.photos.signal.aborted) info.autoSaveResult = saved;
+          info.savedToPhotos = saved === 'saved';
           setLastRecording(info);
           complete(attempt);
           if (mounted.current) {
