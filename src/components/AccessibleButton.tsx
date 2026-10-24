@@ -81,6 +81,9 @@ export function AccessibleButton({
           borderStyle: disabled ? 'dashed' : 'solid',
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
+          // Stacked buttons on normal screens need a visible gap. Camera controls (scheme set) are
+          // placed absolutely, so they get none.
+          marginBottom: scheme ? 0 : spacing.md,
         },
         style,
       ]}

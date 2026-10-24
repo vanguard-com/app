@@ -909,7 +909,7 @@ export default function CameraScreen() {
           style={[
             styles.corner,
             styles.layerControls,
-            { bottom: edge.bottom + 100, left: edge.left },
+            { bottom: edge.bottom + 100, left: edge.left, gap: spacing.sm },
           ]}
         >
           {modeControl}
