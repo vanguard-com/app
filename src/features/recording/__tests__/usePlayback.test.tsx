@@ -54,3 +54,20 @@ it('releases commands on native decode errors', () => {
   expect(isSpeechClaimed()).toBe(false);
   unmount();
 });
+
+it('keeps recorded speech isolated through buffering and automatic native resumption', () => {
+  const { result, unmount } = renderHook(() => usePlayback('file:///clip.mp4', true));
+  act(() => result.current.play());
+  emit('playingChange', { isPlaying: false });
+  expect(result.current.playing).toBe(true);
+  expect(isSpeechClaimed()).toBe(true);
+  emit('playingChange', { isPlaying: true });
+  expect(isSpeechClaimed()).toBe(true);
+  act(() => result.current.pause());
+  expect(isSpeechClaimed()).toBe(false);
+  // A late native resume event cannot restart media after an explicit pause.
+  emit('playingChange', { isPlaying: true });
+  expect(result.current.playing).toBe(false);
+  expect(isSpeechClaimed()).toBe(false);
+  unmount();
+});

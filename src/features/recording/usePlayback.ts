@@ -20,6 +20,7 @@ export function usePlayback(uri: string | undefined, active: boolean) {
   const [position, setPosition] = useState(0);
   const [failed, setFailed] = useState(false);
   const release = useRef<(() => void) | null>(null);
+  const requested = useRef(false);
   const live = useRef(active);
   useLayoutEffect(() => {
     live.current = active;
@@ -32,6 +33,7 @@ export function usePlayback(uri: string | undefined, active: boolean) {
     applyAudioSession();
   }, []);
   const pause = useCallback(() => {
+    requested.current = false;
     try {
       player.pause();
     } catch {
@@ -55,6 +57,7 @@ export function usePlayback(uri: string | undefined, active: boolean) {
           setPosition(0);
         }
         setPlaying(true);
+        requested.current = true;
         player.play();
       } catch {
         pause();
@@ -72,12 +75,13 @@ export function usePlayback(uri: string | undefined, active: boolean) {
   useEffect(() => {
     const listeners = [
       player.addListener('playingChange', ({ isPlaying }) => {
-        if (!live.current && isPlaying) {
+        if (isPlaying && (!live.current || !requested.current)) {
           pause();
           return;
         }
-        setPlaying(isPlaying);
-        if (!isPlaying) releaseSpeech();
+        // Native isPlaying is false while buffering and during interruptions. Keep the Pause
+        // control and speech lease until an explicit pause, end, error or navigation.
+        if (!requested.current) setPlaying(false);
       }),
       player.addListener('timeUpdate', ({ currentTime }) => setPosition(currentTime)),
       player.addListener('playToEnd', () => {
