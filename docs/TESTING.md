@@ -252,3 +252,29 @@ Use [RELEASE.md](RELEASE.md) for clean profile switching, free device builds, de
 and account setup. The CI APK/AAB uses a test key; the iOS Release archive is unsigned. Verify
 the eventual signed store artifacts separately. Use [STORE_PRIVACY.md](STORE_PRIVACY.md) and
 the actual signed SDK report for privacy forms; do not copy the former no-data-collected draft.
+
+## Recording lifecycle hardening after Phase 8
+
+Use the hardening PR's native build, not the older Phase 8 APK. These tests require a physical
+phone; cloud tests reproduce callback timing but cannot establish native microphone behavior.
+
+1. Press Record, then immediately lock the phone or switch apps during microphone attachment.
+   Return after five seconds. Expected: no recording/start confirmation appears on return;
+   capture is idle after pending native cleanup, and a fresh Record action is required.
+2. Repeat rapidly while returning before startup finishes. Expected: a second recording cannot
+   start while the first factory/start/cancellation still owns native resources. No stale error
+   from the old attempt resets a later recording. No Camera/Mic indicator remains unexpectedly.
+3. Start normally and wait for confirmation, then switch apps/lock the phone. Expected: the
+   confirmed recording stops and its local clip is retained. Review opens when Camera becomes
+   active again. Playback contains only the intended clip and its duration excludes save time.
+4. Repeat with Photos access not yet granted, and leave during the spoken save explanation.
+   Expected: no new Photos dialog launches after departure. Review retains the app copy; use
+   Save explicitly to retry. An OS dialog already on screen remains controlled by the OS.
+5. Navigate away during startup and during a confirmed recording. Expected: unfinished startup
+   is cancelled; an existing recording is stopped/preserved. An unmounted Camera cannot later
+   push Review or speak a false start confirmation over another screen.
+6. Repeat with VoiceOver/TalkBack, volume keys, earphones, denied Microphone (silent video), and
+   a call/camera interruption. Verify normal Record/Stop, Play, Save and Share still work.
+
+Record phone/OS, actual build commit, the point of interruption and observed camera/mic
+indicators. Signed distribution and the remaining Phase 8 phone/store gates still apply.

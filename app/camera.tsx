@@ -291,50 +291,54 @@ export default function CameraScreen() {
     return () => sub.remove();
   }, []);
 
-  const recorder = useRecorder(micAllowed, {
-    onStarted: () => {
-      recordingStats.current = new RecordingStats();
-      feedback.beginStats();
-      feedbackWanted.current =
-        useSession.getState().mode === 'feedback' && useSettings.getState().liveFeedback;
-      cues.clear('guidance');
-      cues.say({
-        id: `sys.rec.start.${Date.now()}`,
-        category: 'system',
-        text: micAllowed ? t.recordingStarted : `${t.recordingStarted}. ${t.micOff}`,
-        earcon: 'start',
-        haptic: 'single',
-      });
+  const recorder = useRecorder(
+    micAllowed,
+    {
+      onStarted: () => {
+        recordingStats.current = new RecordingStats();
+        feedback.beginStats();
+        feedbackWanted.current =
+          useSession.getState().mode === 'feedback' && useSettings.getState().liveFeedback;
+        cues.clear('guidance');
+        cues.say({
+          id: `sys.rec.start.${Date.now()}`,
+          category: 'system',
+          text: micAllowed ? t.recordingStarted : `${t.recordingStarted}. ${t.micOff}`,
+          earcon: 'start',
+          haptic: 'single',
+        });
+      },
+      onCaptured: (info) => ({
+        ...info,
+        recordingSummary: recordingStats.current.finish(
+          (useSession.getState().recordingStartedAt ?? Date.now() - info.durationMs) +
+            info.durationMs,
+        ),
+        ...(feedbackWanted.current ? { feedbackSummary: feedback.finishStats() } : {}),
+      }),
+      onFinished: () => {
+        cues.say({
+          id: `sys.rec.stop.${Date.now()}`,
+          category: 'system',
+          text: t.recordingStopped,
+          earcon: 'stop',
+          haptic: 'single',
+        });
+        router.push('/review');
+      },
+      onError: (error) => {
+        console.warn('Recording error', error);
+        cues.say({
+          id: `sys.rec.error.${Date.now()}`,
+          category: 'system',
+          text: t.recordFailed,
+          earcon: 'error',
+          haptic: 'double',
+        });
+      },
     },
-    onCaptured: (info) => ({
-      ...info,
-      recordingSummary: recordingStats.current.finish(
-        (useSession.getState().recordingStartedAt ?? Date.now() - info.durationMs) +
-          info.durationMs,
-      ),
-      ...(feedbackWanted.current ? { feedbackSummary: feedback.finishStats() } : {}),
-    }),
-    onFinished: () => {
-      cues.say({
-        id: `sys.rec.stop.${Date.now()}`,
-        category: 'system',
-        text: t.recordingStopped,
-        earcon: 'stop',
-        haptic: 'single',
-      });
-      router.push('/review');
-    },
-    onError: (error) => {
-      console.warn('Recording error', error);
-      cues.say({
-        id: `sys.rec.error.${Date.now()}`,
-        category: 'system',
-        text: t.recordFailed,
-        earcon: 'error',
-        haptic: 'double',
-      });
-    },
-  });
+    screenLive,
+  );
 
   const toggleRecording = useCallback(() => {
     const current = useSession.getState().recordingPhase;
@@ -571,11 +575,6 @@ export default function CameraScreen() {
       (phase === 'idle' || (voiceWhileRecording && isRecording)),
     onCommand,
   );
-
-  // Never leave a recording running in the background or behind another screen.
-  useEffect(() => {
-    if (!screenLive && useSession.getState().recordingPhase === 'recording') recorder.stop();
-  }, [screenLive, recorder]);
 
   // Spoken elapsed time while recording (Settings > Camera and recording).
   useEffect(() => {
@@ -819,8 +818,8 @@ export default function CameraScreen() {
           onStopped={() => setCameraReady(false)}
           onError={(error) => console.warn('Camera error', error)}
           onInterruptionStarted={() => {
-            if (useSession.getState().recordingPhase === 'recording') {
-              recorder.stop();
+            if (['starting', 'recording'].includes(useSession.getState().recordingPhase)) {
+              recorder.interrupt();
               cues.say({ id: 'sys.interrupted', category: 'system', text: t.interrupted });
             }
           }}

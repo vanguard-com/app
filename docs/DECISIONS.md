@@ -437,3 +437,23 @@ Verify anonymous access after merge; no website deployment or extra hosting is r
 Release profiles explicitly build Android arm64-v8a, matching CI and supported phones;
 development also allows x86_64 emulators. The template's 32-bit defaults are removed because
 llama.rn itself filters those ABIs and cannot provide a working scene runtime for them.
+
+### D55. Recording startup belongs to the active Camera lifetime
+
+Post-Phase 8 release hardening found a reproducible race: Camera's background effect stopped
+only an already confirmed recording, while microphone attachment, recorder creation and native
+start could complete after departure. Recorder attempts now retain ownership through pending
+work/cancellation, invalidate startup on focus/activity loss or unmount, and reject inactive
+or overlapping Record requests. A late native start is cancelled using that recorder's public
+API, with Stop as a fallback. Terminal events are accepted once for their owning attempt;
+stale events cannot reset a newer recording or duplicate saves. Configuration waiters clear
+their timers on completion/cancellation. An early terminal event cannot revive recording state
+when its start promise subsequently resolves.
+
+Confirmed recordings still stop and retain the local clip. Review notification waits for an
+active Camera; unmounted Camera callbacks cannot navigate. Automatic Photos permission/save
+work has an abort signal so departure cannot open a new dialog or initiate a late save; the
+local copy remains and Review's Save retries explicitly. An OS dialog already displayed cannot
+be withdrawn. Real camera/microphone cleanup, hardware interruptions and audio routing still
+require the TESTING.md phone checklist. No dependency, native module, network service, store
+credential or new feature phase is introduced.

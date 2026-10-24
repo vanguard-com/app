@@ -100,7 +100,11 @@ it('keeps the video before saving to Photos, then reaches Review and hands the l
     await captured('/temporary/camera.mp4');
   });
   expect(keepRecording).toHaveBeenCalledWith('/temporary/camera.mp4');
-  expect(saveToPhotos).toHaveBeenCalledWith(info.uri);
+  expect(saveToPhotos).toHaveBeenCalledWith(
+    info.uri,
+    false,
+    expect.objectContaining({ aborted: false }),
+  );
   expect(config).toHaveBeenLastCalledWith({ isRecording: false });
   expect(jest.mocked(keepRecording).mock.invocationCallOrder[0]).toBeLessThan(
     jest.mocked(saveToPhotos).mock.invocationCallOrder[0],

@@ -35,16 +35,21 @@ export function deleteRecording(uri: string): void {
 export type SaveResult = 'saved' | 'denied' | 'failed';
 
 /** Save to the phone's photo library. Asks for add-only access the first time. */
-export async function saveToPhotos(uri: string, retry = false): Promise<SaveResult> {
+export async function saveToPhotos(
+  uri: string,
+  retry = false,
+  signal?: AbortSignal,
+): Promise<SaveResult> {
   try {
     if (
       !(await ensurePhotosPermission(
-        undefined,
+        signal,
         retry,
         retry || !useSettings.getState().permissionsReviewed,
       ))
     )
       return 'denied';
+    if (signal?.aborted) return 'denied';
     await MediaLibrary.saveToLibraryAsync(uri);
     return 'saved';
   } catch (error) {
