@@ -13,7 +13,14 @@ export function Screen({ children }: { children: ReactNode }) {
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <ScrollView
         style={styles.fill}
-        contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xl }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          width: '100%',
+          maxWidth: 640,
+          alignSelf: 'center',
+          padding: spacing.lg,
+          paddingBottom: spacing.xl,
+        }}
       >
         {children}
       </ScrollView>

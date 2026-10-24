@@ -25,6 +25,7 @@ export default function FeedbackSettings() {
         testID="setting-live-feedback"
       />
       <AccessibleButton
+        navigation
         label={t.feedbackTypes.label}
         hint={t.feedbackTypes.hint}
         onPress={() => router.push('/settings/feedback-types')}

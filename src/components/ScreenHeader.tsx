@@ -30,7 +30,17 @@ export function ScreenHeader({ title, hideBack, onBack, announce = true }: Scree
   };
 
   return (
-    <View style={[styles.row, { marginBottom: spacing.lg }]}>
+    <View
+      style={[
+        styles.row,
+        {
+          marginBottom: spacing.lg,
+          paddingBottom: spacing.md,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: colors.divider,
+        },
+      ]}
+    >
       {hideBack ? null : (
         <AccessibleButton
           label={strings.common.back.label}

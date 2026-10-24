@@ -8,8 +8,8 @@
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#0B0B0F",
-    "primaryColor": "#FFC83D",
+    "backgroundColor": "#050B14",
+    "primaryColor": "#568BFF",
     "ios": {
       "bundleIdentifier": "com.vanguard.lumi",
       "buildNumber": "1",
@@ -49,7 +49,7 @@
       "versionCode": 1,
       "allowBackup": false,
       "adaptiveIcon": {
-        "backgroundColor": "#0B0B0F",
+        "backgroundColor": "#050B14",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -74,7 +74,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#0B0B0F"
+          "backgroundColor": "#050B14"
         }
       ],
       [

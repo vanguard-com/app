@@ -13,6 +13,7 @@ export default function ModelsScreen() {
       <ScreenHeader title={t.models.label} />
       {(['standard', 'detailed'] as const).map((model) => (
         <AccessibleButton
+          navigation
           key={model}
           label={t.modelNames[model]}
           hint={t.modelHint}
@@ -20,6 +21,7 @@ export default function ModelsScreen() {
         />
       ))}
       <AccessibleButton
+        navigation
         label={t.downloads.label}
         hint={t.downloads.hint}
         onPress={() => router.push('/settings/downloads')}

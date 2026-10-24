@@ -30,6 +30,7 @@ export default function RecordingSettings() {
         testID="setting-recording-cues"
       />
       <AccessibleButton
+        navigation
         label={t.framing.label}
         hint={t.framing.hint}
         onPress={() => router.push('/settings/framing')}

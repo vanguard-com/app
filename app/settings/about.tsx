@@ -50,6 +50,7 @@ export default function AboutScreen() {
       </Text>
       {debugOverlay ? (
         <AccessibleButton
+          navigation
           label={strings.background.benchmark.label}
           hint={strings.background.benchmark.hint}
           onPress={() => router.push('/benchmark')}

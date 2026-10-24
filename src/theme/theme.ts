@@ -1,4 +1,4 @@
-// Night + Amber design tokens. This is the only file allowed to contain colour literals
+// Blue + Ink design tokens. This is the only file allowed to contain colour literals
 // (enforced by src/theme/__tests__/noHardcodedColors.test.ts).
 
 export type ColorScheme = 'light' | 'dark';
@@ -10,6 +10,8 @@ export interface Palette {
   surface: string;
   /** Backing behind any text or icon drawn on the camera feed. Dark palette only in practice. */
   surfaceOverlay: string;
+  /** Quiet separators; interactive boundaries use the stronger button border. */
+  divider: string;
   textPrimary: string;
   textSecondary: string;
   /** Brand colour: record button, focus ring. Never used for text in light mode. */
@@ -23,36 +25,37 @@ export interface Palette {
   secondaryButton: { background: string; text: string; border: string };
 }
 
+// Dark surfaces are deliberately deeper than the reference's blue-gray cards.
+// Blue actions are shared across schemes; status colors keep their own meaning.
 export const darkPalette: Palette = {
-  background: '#0B0B0F',
-  surface: '#1C1C22',
-  // Spec value was 0.6. Over a white camera feed that gives white text only 5.7:1 and secondary
-  // text 3.4:1. 0.8 keeps every text token at 7:1 or more even over a fully white frame.
-  surfaceOverlay: 'rgba(0,0,0,0.8)',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#C7C7CC',
-  accent: '#FFC83D',
+  background: '#050B14',
+  surface: '#101C2E',
+  surfaceOverlay: 'rgba(5,11,20,0.94)',
+  divider: '#25354D',
+  textPrimary: '#F7FAFF',
+  textSecondary: '#C0CDDF',
+  accent: '#568BFF',
   good: '#34D399',
   adjust: '#FFC83D',
-  problem: '#FF6B6B',
-  primaryButton: { background: '#FFC83D', text: '#0B0B0F', border: '#FFC83D' },
-  secondaryButton: { background: '#1C1C22', text: '#FFFFFF', border: '#C7C7CC' },
+  problem: '#FF808B',
+  primaryButton: { background: '#1747C9', text: '#FFFFFF', border: '#568BFF' },
+  secondaryButton: { background: '#101C2E', text: '#F7FAFF', border: '#647995' },
 };
 
 export const lightPalette: Palette = {
   background: '#FFFFFF',
-  surface: '#F2F2F5',
-  surfaceOverlay: 'rgba(0,0,0,0.8)',
-  textPrimary: '#111111',
-  textSecondary: '#3C3C43',
-  accent: '#8A5A00',
+  surface: '#EEF2F8',
+  surfaceOverlay: 'rgba(5,11,20,0.94)',
+  divider: '#DCE3EF',
+  textPrimary: '#101D35',
+  textSecondary: '#3D4D65',
+  accent: '#1747C9',
   good: '#05553C',
-  adjust: '#8A5A00',
+  adjust: '#805300',
   problem: '#991B1B',
-  // No colour reaches 7:1 on #8A5A00, so light mode primary buttons use an accent border instead
-  // of an accent fill.
-  primaryButton: { background: '#F2F2F5', text: '#111111', border: '#8A5A00' },
-  secondaryButton: { background: '#F2F2F5', text: '#111111', border: '#3C3C43' },
+  // A deeper royal blue keeps white action labels at the app's 7:1 text target.
+  primaryButton: { background: '#1747C9', text: '#FFFFFF', border: '#1747C9' },
+  secondaryButton: { background: '#EEF2F8', text: '#101D35', border: '#7B879C' },
 };
 
 export const palettes: Record<ColorScheme, Palette> = {
@@ -87,9 +90,9 @@ export const layout = {
   /** Minimum touch target, in points. */
   minTouchTarget: 60,
   recordButtonSize: 96,
-  cornerRadius: 16,
+  cornerRadius: 12,
   focusRingWidth: 4,
-  buttonBorderWidth: 2,
+  buttonBorderWidth: 1.5,
 } as const;
 
 export type Status = 'good' | 'adjust' | 'problem';

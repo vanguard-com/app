@@ -25,6 +25,7 @@ export default function InformationScreen() {
         }}
       />
       <AccessibleButton
+        navigation
         label={t.about.label}
         hint={t.about.hint}
         onPress={() => router.push('/settings/about')}
