@@ -10,9 +10,8 @@ import { applyAudioSession } from '@/audio/audioSession';
 import { cues } from '@/cues';
 import { useSession, type RecordingInfo } from '@/store/sessionStore';
 
-import { keepRecording, saveToPhotos } from './files';
+import { deleteRecording, keepRecording, saveToPhotos } from './files';
 
-// If the camera never confirms the microphone was attached, record anyway after this long.
 const CONFIGURE_TIMEOUT_MS = 4000;
 
 export interface RecorderCallbacks {
@@ -22,36 +21,37 @@ export interface RecorderCallbacks {
   onError: (error: unknown) => void;
 }
 
-/**
- * Video recording on top of VisionCamera v5.
- *
- * The microphone is attached to the camera only while recording. That keeps the microphone free
- * for voice commands the rest of the time ("start recording" has to be heard before recording).
- * Starting therefore takes a moment: attach audio, wait for the camera to reconfigure, record.
- */
-export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
+interface Attempt {
+  starting: boolean;
+  cancelled: boolean;
+  terminal: boolean;
+  recorder?: Recorder;
+  startedAt: number;
+  stoppedAt?: number;
+  wake?: () => void;
+  photos: AbortController;
+}
+
+/** Own each native start through completion, including focus loss during async startup. */
+export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks, active = true) {
   const [audioWanted, setAudioWanted] = useState(false);
   const enableAudio = audioWanted && micAllowed;
   const videoOutput = useVideoOutput({
     targetResolution: CommonResolutions.FHD_16_9,
     enableAudio,
   });
-
   const outputRef = useRef(videoOutput);
   const outputHasAudio = useRef(enableAudio);
-  const waiters = useRef<{ audio: boolean; resolve: () => void }[]>([]);
-  const recorderRef = useRef<Recorder | null>(null);
-  const startedAtRef = useRef(0);
-  const stoppedAtRef = useRef<number | null>(null);
+  const waiters = useRef(new Set<{ audio: boolean; finish: () => void }>());
+  const attemptRef = useRef<Attempt | null>(null);
   const callbacksRef = useRef(callbacks);
+  const mounted = useRef(true);
+  const live = useRef(active);
+  const pendingFinished = useRef<RecordingInfo | null>(null);
 
-  // Layout effects run right after each commit, before the camera's async reconfiguration
-  // reports back through onConfigured.
   useLayoutEffect(() => {
     outputRef.current = videoOutput;
     outputHasAudio.current = enableAudio;
-  }, [videoOutput, enableAudio]);
-  useLayoutEffect(() => {
     callbacksRef.current = callbacks;
   });
 
@@ -60,100 +60,207 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
   const markStopped = useSession((s) => s.stopRecording);
   const setLastRecording = useSession((s) => s.setLastRecording);
 
-  /** Pass to <Camera onConfigured>. */
   const onConfigured = useCallback(() => {
-    // AVCaptureSession may have changed the shared iOS audio session; put Lumi's back.
     applyAudioSession();
-    const ready = waiters.current.filter((w) => w.audio === outputHasAudio.current);
-    waiters.current = waiters.current.filter((w) => !ready.includes(w));
-    ready.forEach((w) => w.resolve());
+    for (const waiter of waiters.current) {
+      if (waiter.audio === outputHasAudio.current) waiter.finish();
+    }
   }, []);
 
-  const waitForOutput = (audio: boolean) =>
+  const waitForOutput = (attempt: Attempt, audio: boolean) =>
     new Promise<void>((resolve) => {
-      waiters.current.push({ audio, resolve });
-      setTimeout(resolve, CONFIGURE_TIMEOUT_MS);
+      const waiter = {
+        audio,
+        finish: () => {
+          clearTimeout(timer);
+          waiters.current.delete(waiter);
+          attempt.wake = undefined;
+          resolve();
+        },
+      };
+      const timer = setTimeout(waiter.finish, CONFIGURE_TIMEOUT_MS);
+      attempt.wake = waiter.finish;
+      waiters.current.add(waiter);
     });
 
-  const reset = useCallback(() => {
-    recorderRef.current = null;
-    setAudioWanted(false);
+  const releaseAudio = useCallback(() => {
+    if (mounted.current) setAudioWanted(false);
     markStopped();
     cues.configure({ isRecording: false });
   }, [markStopped]);
 
+  const complete = useCallback(
+    (attempt: Attempt) => {
+      if (attemptRef.current !== attempt) return;
+      attempt.wake?.();
+      attemptRef.current = null;
+      releaseAudio();
+    },
+    [releaseAudio],
+  );
+
   const start = useCallback(async () => {
-    if (useSession.getState().recordingPhase !== 'idle') return;
+    if (
+      !mounted.current ||
+      !live.current ||
+      attemptRef.current ||
+      useSession.getState().recordingPhase !== 'idle'
+    )
+      return;
+    const attempt: Attempt = {
+      starting: true,
+      cancelled: false,
+      terminal: false,
+      startedAt: Date.now(),
+      photos: new AbortController(),
+    };
+    attemptRef.current = attempt;
     setPhase('starting');
-    // Apply the recording sound policy before attaching the mic or emitting confirmation cues.
     cues.configure({ isRecording: true });
     cues.clear('guidance');
+    const owns = () => attemptRef.current === attempt;
+    const fail = (error: unknown) => {
+      if (!owns() || attempt.terminal || attempt.cancelled) return;
+      attempt.terminal = true;
+      complete(attempt);
+      if (mounted.current) callbacksRef.current.onError(error);
+    };
     try {
       if (micAllowed && !outputHasAudio.current) {
-        const attached = waitForOutput(true);
+        const attached = waitForOutput(attempt, true);
         setAudioWanted(true);
         await attached;
       }
+      if (attempt.cancelled || !owns()) {
+        complete(attempt);
+        return;
+      }
       const recorder = await outputRef.current.createRecorder({});
-      recorderRef.current = recorder;
-      stoppedAtRef.current = null;
+      attempt.recorder = recorder;
+      if (attempt.cancelled || !owns()) {
+        complete(attempt);
+        return;
+      }
       const hasAudio = outputHasAudio.current;
-      await recorder.startRecording(
-        async (path) => {
-          const durationMs = Math.max(
-            0,
-            (stoppedAtRef.current ?? Date.now()) - startedAtRef.current,
-          );
-          try {
-            const uri = keepRecording(path);
-            const base: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
-            const info = callbacksRef.current.onCaptured?.(base) ?? base;
-            // Capture is finished. Release the mic and recording cue policy before explaining
-            // Photos permission, while keeping the UI busy until saving completes.
-            reset();
-            setPhase('stopping');
-            info.autoSaveResult = await saveToPhotos(uri);
-            info.savedToPhotos = info.autoSaveResult === 'saved';
-            setLastRecording(info);
-            reset();
-            callbacksRef.current.onFinished(info);
-          } catch (error) {
-            reset();
-            callbacksRef.current.onError(error);
+      // Native completion/error may arrive before its start promise resolves.
+      attempt.startedAt = Date.now();
+      await recorder.startRecording(async (path) => {
+        if (attempt.cancelled) {
+          deleteRecording(path.startsWith('file://') ? path : `file://${path}`);
+          return;
+        }
+        if (!owns() || attempt.terminal) return;
+        attempt.terminal = true;
+        const durationMs = Math.max(0, (attempt.stoppedAt ?? Date.now()) - attempt.startedAt);
+        try {
+          const uri = keepRecording(path);
+          const base: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
+          const info =
+            mounted.current && !attempt.starting
+              ? (callbacksRef.current.onCaptured?.(base) ?? base)
+              : base;
+          releaseAudio();
+          setPhase('stopping');
+          const saved = await saveToPhotos(uri, false, attempt.photos.signal);
+          // Leaving during a save is not evidence that Photos permission was denied.
+          if (saved === 'saved' || !attempt.photos.signal.aborted) info.autoSaveResult = saved;
+          info.savedToPhotos = saved === 'saved';
+          setLastRecording(info);
+          complete(attempt);
+          if (mounted.current) {
+            if (live.current) callbacksRef.current.onFinished(info);
+            else pendingFinished.current = info;
           }
-        },
-        (error) => {
-          reset();
-          callbacksRef.current.onError(error);
-        },
-      );
-      startedAtRef.current = Date.now();
-      markStarted(startedAtRef.current);
+        } catch (error) {
+          complete(attempt);
+          if (mounted.current) callbacksRef.current.onError(error);
+        }
+      }, fail);
+      if (attempt.cancelled) {
+        // No native cancellation API exists for the start promise itself. Retain ownership
+        // until it resolves, then cancel that exact recorder before allowing another start.
+        if (!attempt.terminal) {
+          try {
+            await recorder.cancelRecording();
+          } catch {
+            try {
+              await recorder.stopRecording();
+            } catch (error) {
+              console.warn('Could not stop interrupted recording startup', error);
+            }
+          }
+        }
+        complete(attempt);
+        return;
+      }
+      if (!owns() || attempt.terminal) return;
+      attempt.starting = false;
+      attempt.startedAt = Date.now();
+      markStarted(attempt.startedAt);
       applyAudioSession();
       callbacksRef.current.onStarted();
     } catch (error) {
-      reset();
-      callbacksRef.current.onError(error);
+      if (attempt.cancelled) complete(attempt);
+      else fail(error);
     }
-  }, [micAllowed, markStarted, reset, setLastRecording, setPhase]);
+  }, [micAllowed, markStarted, complete, releaseAudio, setLastRecording, setPhase]);
 
   const stop = useCallback(async () => {
-    const recorder = recorderRef.current;
-    if (!recorder || useSession.getState().recordingPhase !== 'recording') return;
+    const attempt = attemptRef.current;
+    if (
+      !attempt?.recorder ||
+      attempt.starting ||
+      attempt.terminal ||
+      useSession.getState().recordingPhase !== 'recording'
+    )
+      return;
     setPhase('stopping');
-    stoppedAtRef.current = Date.now();
+    attempt.stoppedAt = Date.now();
     try {
-      // The finished callback passed to startRecording does the rest.
-      await recorder.stopRecording();
+      await attempt.recorder.stopRecording();
     } catch (error) {
-      reset();
-      callbacksRef.current.onError(error);
+      if (attemptRef.current !== attempt || attempt.terminal) return;
+      attempt.terminal = true;
+      complete(attempt);
+      if (mounted.current) callbacksRef.current.onError(error);
     }
-  }, [reset, setPhase]);
+  }, [complete, setPhase]);
+
+  const interrupt = useCallback(() => {
+    const attempt = attemptRef.current;
+    if (!attempt) return;
+    attempt.photos.abort();
+    if (attempt.starting && !attempt.terminal) {
+      attempt.cancelled = true;
+      // Keep the startup cue policy until pending native work has actually been cleaned up.
+      attempt.wake?.();
+    } else if (!attempt.terminal) {
+      void stop();
+    }
+  }, [stop]);
+
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      live.current = false;
+      interrupt();
+    };
+  }, [interrupt]);
+
+  useLayoutEffect(() => {
+    live.current = active;
+    if (!active) interrupt();
+    else if (pendingFinished.current) {
+      const info = pendingFinished.current;
+      pendingFinished.current = null;
+      callbacksRef.current.onFinished(info);
+    }
+  }, [active, interrupt]);
 
   const outputs = useMemo<CameraOutput[]>(() => [videoOutput], [videoOutput]);
   return useMemo(
-    () => ({ outputs, onConfigured, start, stop }),
-    [outputs, onConfigured, start, stop],
+    () => ({ outputs, onConfigured, start, stop, interrupt }),
+    [outputs, onConfigured, start, stop, interrupt],
   );
 }
