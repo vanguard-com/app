@@ -31,24 +31,26 @@ exclusions. EAS JSON validates against @expo/eas-json 25.3.0. Existing icon sour
 and the main icon is opaque RGB. Store description is 2,517 characters and keywords 96,
 within their limits.
 
-Linked GitHub native results for the final commit are recorded in the phase PR. Android and
-iOS native compilation run there. Neither cloud environment can establish physical
-camera/audio/haptics, store signing or provider-retention facts.
+Phase 8 merged as `e5874c4`. Main CI and Android APK/AAB build passed; the unsigned iOS Release
+archive passed on the phase head with the identical source tree. Actual build/artifact hashes,
+privacy manifests and remaining acceptance work are recorded in [RELEASE_CANDIDATE.md](RELEASE_CANDIDATE.md).
+Neither cloud environment can establish physical camera/audio/haptics, store signing or
+provider-retention facts.
 
 ## Release gates
 
-| Gate                                               | Current result / required evidence                                                                 |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Phase 7 native compilation                         | Both platforms passed before its merge                                                             |
-| Phase 7 full reader/performance journey            | Physical results still pending                                                                     |
-| Current head TS/lint/Jest/config/export/prebuild   | See phase PR evidence                                                                              |
-| Current head production-profile native compilation | See Android/iOS runs linked from phase PR                                                          |
-| Signed Android store AAB and iOS IPA               | Owner EAS/store accounts and dedicated credentials not connected                                   |
-| ML Kit privacy decision                            | Owner approved retaining ML Kit with metrics disclosure, 24 October 2026                           |
-| Final provider/SDK privacy forms                   | Worksheet prepared; linkage/retention and signed SDK report review pending                         |
-| Public privacy/support pages                       | Owner approved existing GitHub policy until website is ready; support copy uses GitHub after merge |
-| Store screenshots and feature graphic              | Actual release-device captures/export pending                                                      |
-| Final TestFlight / Play testing acceptance         | Not uploaded or verified; owner console steps in RELEASE.md                                        |
+| Gate                                             | Current result / required evidence                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Phase 7 native compilation                       | Both platforms passed before its merge                                                        |
+| Phase 7 full reader/performance journey          | Physical results still pending                                                                |
+| Current head TS/lint/Jest/config/export/prebuild | See phase PR evidence                                                                         |
+| Phase 8 production-profile native compilation    | Android APK/AAB and unsigned iOS Release archive passed; see release verification             |
+| Signed Android store AAB and iOS IPA             | Owner EAS/store accounts and dedicated credentials not connected                              |
+| ML Kit privacy decision                          | Owner approved retaining ML Kit with metrics disclosure, 24 October 2026                      |
+| Final provider/SDK privacy forms                 | Worksheet prepared; linkage/retention and signed SDK report review pending                    |
+| Public privacy/support pages                     | Owner-approved GitHub policy and support pages both returned HTTP 200 anonymously after merge |
+| Store screenshots and feature graphic            | Actual release-device captures/export pending                                                 |
+| Final TestFlight / Play testing acceptance       | Not uploaded or verified; owner console steps in RELEASE.md                                   |
 
 ## Physical release acceptance
 
