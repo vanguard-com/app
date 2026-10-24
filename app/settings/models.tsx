@@ -3,10 +3,8 @@ import { router } from 'expo-router';
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
 import { strings } from '@/i18n';
 import { refreshModels } from '@/features/background/models';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 export default function ModelsScreen() {
   const t = strings.background;
-  useScreenAnnouncement(t.models.label);
   useEffect(() => {
     void refreshModels();
   }, []);

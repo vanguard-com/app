@@ -1,3 +1,4 @@
+import { useReducedMotion } from '@/utils/accessibility';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,6 +14,7 @@ applyAudioSession();
 
 export default function RootLayout() {
   const { colors } = useTheme();
+  const reducedMotion = useReducedMotion();
   useCueEngineSync();
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           // Gentle fade only: no fast or flashing motion.
-          animation: 'fade',
+          animation: reducedMotion ? 'none' : 'fade',
           contentStyle: { backgroundColor: colors.background },
         }}
       >

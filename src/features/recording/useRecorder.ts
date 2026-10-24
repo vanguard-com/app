@@ -7,6 +7,7 @@ import {
 } from 'react-native-vision-camera';
 
 import { applyAudioSession } from '@/audio/audioSession';
+import { cues } from '@/cues';
 import { useSession, type RecordingInfo } from '@/store/sessionStore';
 
 import { keepRecording, saveToPhotos } from './files';
@@ -78,11 +79,15 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
     recorderRef.current = null;
     setAudioWanted(false);
     markStopped();
+    cues.configure({ isRecording: false });
   }, [markStopped]);
 
   const start = useCallback(async () => {
     if (useSession.getState().recordingPhase !== 'idle') return;
     setPhase('starting');
+    // Apply the recording sound policy before attaching the mic or emitting confirmation cues.
+    cues.configure({ isRecording: true });
+    cues.clear('guidance');
     try {
       if (micAllowed && !outputHasAudio.current) {
         const attached = waitForOutput(true);

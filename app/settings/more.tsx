@@ -3,12 +3,10 @@ import { router } from 'expo-router';
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
 import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 export default function MoreSettings() {
   const { spacing } = useTheme();
   const t = strings.settings;
-  useScreenAnnouncement(t.groups.more.label);
 
   return (
     <Screen>
@@ -25,6 +23,12 @@ export default function MoreSettings() {
         onPress={() => router.push({ pathname: '/welcome', params: { replay: '1' } })}
         style={{ marginBottom: spacing.md }}
         testID="setting-replay-tutorial"
+      />
+      <AccessibleButton
+        label={strings.permissions.title}
+        hint={strings.permissions.detailHint}
+        onPress={() => router.push('/settings/permissions')}
+        testID="setting-permissions"
       />
       <AccessibleButton
         label={strings.background.information.label}

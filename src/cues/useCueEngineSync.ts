@@ -14,7 +14,7 @@ export function useCueEngineSync(): void {
   const voiceRate = useSettings((s) => s.voiceRate);
   const cueVolume = useSettings((s) => s.cueVolume);
   const recordingCues = useSettings((s) => s.recordingCues);
-  const isRecording = useSession((s) => s.isRecording);
+  const isRecording = useSession((s) => s.recordingPhase === 'starting' || s.isRecording);
   const screenReaderOn = useScreenReaderEnabled();
   const [earphonesConnected, setEarphonesConnected] = useState(false);
 

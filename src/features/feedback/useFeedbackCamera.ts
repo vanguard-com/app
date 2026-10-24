@@ -176,7 +176,13 @@ export function useFeedbackCamera(
       const next = { ...observeFace(face), posture };
       if (!current.settings.eyeContact) next.eyeContact = null;
       if (!current.settings.expression) next.smiling = null;
-      setObservation(next);
+      setObservation((previous) =>
+        previous.eyeContact === next.eyeContact &&
+        previous.smiling === next.smiling &&
+        previous.posture === next.posture
+          ? previous
+          : next,
+      );
       lastAt.current = at;
       if (useSession.getState().recordingPhase === 'recording') stats.current.sample(next, at);
       const requests = tracker.current.update(
@@ -286,6 +292,12 @@ export function useFeedbackCamera(
     target.current = null;
     const reset = setTimeout(() => setObservation(UNKNOWN), 0);
     cues.clearCategory('feedback');
+    if (!enabled)
+      return () => {
+        clearTimeout(reset);
+        invalidate();
+        available.set(false);
+      };
     const timer = setInterval(() => {
       if (Date.now() - lastAt.current > FEEDBACK.staleMs) {
         tracker.current.reset();

@@ -36,6 +36,8 @@ export interface Settings {
   safeZone: number;
   debugOverlay: boolean;
   onboardingComplete: boolean;
+  /** Guided access choices were reviewed; automatic flows must not re-prompt skipped access. */
+  permissionsReviewed: boolean;
 }
 
 export const VOICE_RATE_RANGE = { min: 0.5, max: 2, step: 0.25 } as const;
@@ -58,6 +60,7 @@ export const defaultSettings: Settings = {
   safeZone: 0.8,
   debugOverlay: false,
   onboardingComplete: false,
+  permissionsReviewed: false,
 };
 
 interface SettingsActions {

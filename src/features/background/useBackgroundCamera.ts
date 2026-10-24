@@ -309,7 +309,8 @@ export function useBackgroundCamera(
       } catch {
         mapping.set(null);
       }
-      if (Date.now() - lastPacket.current > 2500) {
+      if (lastPacket.current !== 0 && Date.now() - lastPacket.current > 2500) {
+        lastPacket.current = 0;
         setObjects([]);
         selected.current = null;
         cues.clearIds(WARNING_IDS);

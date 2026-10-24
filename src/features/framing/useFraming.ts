@@ -29,22 +29,35 @@ export function useFraming(
 ) {
   const safeZone = useSettings((s) => s.safeZone);
   const autoLens = useSettings((s) => s.autoLens);
+  const debug = useSettings((s) => s.debugOverlay);
   const [result, setResult] = useState<Framing>(() => new FramingTracker(Date.now()).result);
   const [fps, setFps] = useState(0);
   const tracker = useRef(new FramingTracker(0));
   const zoom = useRef(new AutoZoom());
-  const live = useRef({ active, size, safeZone, autoLens, facing, onObservation });
+  const live = useRef({ active, size, safeZone, autoLens, facing, onObservation, debug });
   useLayoutEffect(() => {
-    live.current = { active, size, safeZone, autoLens, facing, onObservation };
+    live.current = { active, size, safeZone, autoLens, facing, onObservation, debug };
   });
   const lastTone = useRef(-Infinity);
   const metrics = useRef({ start: 0, count: 0 });
   const latest = useRef(result);
   const failure = useRef(false);
+  const lastDisplay = useRef(-Infinity);
 
   const publish = useCallback((next: Framing) => {
+    const previous = latest.current;
     latest.current = next;
-    setResult(next);
+    const now = Date.now();
+    // All frames still drive tones, zoom and recording statistics; React only needs visible
+    // state changes, with bounding-box drawing capped at 4 Hz when debug is enabled.
+    if (
+      next.state !== previous.state ||
+      next.status !== previous.status ||
+      (live.current.debug && now - lastDisplay.current >= 250)
+    ) {
+      lastDisplay.current = now;
+      setResult(next);
+    }
   }, []);
 
   const onFaces = (faces: Pick<Face, 'bounds' | 'trackingId'>[]) => {
@@ -69,7 +82,7 @@ export function useFraming(
       publish(next);
       metrics.current.count++;
       if (now - metrics.current.start >= 1000) {
-        setFps((metrics.current.count * 1000) / (now - metrics.current.start));
+        if (current.debug) setFps((metrics.current.count * 1000) / (now - metrics.current.start));
         metrics.current = { start: now, count: 0 };
       }
       const controller = view.controller;

@@ -7,6 +7,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useState } from 'react';
 
 import { useTheme, type ColorScheme } from '@/theme';
 
@@ -45,6 +46,7 @@ export function AccessibleButton({
   onLongPress,
 }: AccessibleButtonProps) {
   const { colors, typography, layout, spacing } = useTheme(scheme);
+  const [focused, setFocused] = useState(false);
   const palette = variant === 'primary' ? colors.primaryButton : colors.secondaryButton;
 
   return (
@@ -55,6 +57,9 @@ export function AccessibleButton({
       accessibilityRole={role}
       accessibilityState={{ disabled: !!disabled, selected }}
       disabled={disabled}
+      focusable={!disabled}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       onPress={onPress}
       onLongPress={onLongPress}
       testID={testID}
@@ -65,12 +70,17 @@ export function AccessibleButton({
           minWidth: layout.minTouchTarget,
           minHeight: layout.minTouchTarget,
           borderRadius: layout.cornerRadius,
-          borderWidth: pressed || selected ? layout.focusRingWidth : layout.buttonBorderWidth,
+          borderWidth:
+            pressed || selected || focused ? layout.focusRingWidth : layout.buttonBorderWidth,
           backgroundColor: palette.background,
-          borderColor: pressed || selected ? colors.accent : palette.border,
+          borderColor: focused
+            ? palette.text
+            : pressed || selected
+              ? colors.accent
+              : palette.border,
+          borderStyle: disabled ? 'dashed' : 'solid',
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
-          opacity: disabled ? 0.5 : 1,
         },
         style,
       ]}
@@ -87,7 +97,15 @@ export function AccessibleButton({
         ) : null}
         {text !== '' ? (
           <Text
-            style={[typography.label, { color: palette.text, marginLeft: icon ? spacing.sm : 0 }]}
+            style={[
+              typography.label,
+              {
+                color: palette.text,
+                marginLeft: icon ? spacing.sm : 0,
+                flexShrink: 1,
+                textAlign: 'center',
+              },
+            ]}
           >
             {text ?? label}
           </Text>

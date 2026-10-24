@@ -36,6 +36,7 @@ jest.mock('@/features/recording/share', () => ({ shareRecording: jest.fn(async (
 jest.mock('@/cues', () => ({
   cues: {
     say: jest.fn(),
+    configure: jest.fn(),
     clear: jest.fn(),
     clearCategory: jest.fn(),
     clearIds: jest.fn(),
@@ -86,12 +87,21 @@ it('keeps the video before saving to Photos, then reaches Review and hands the l
     screen.getByTestId('vision-camera').props.onConfigured();
   });
   expect(useSession.getState().recordingPhase).toBe('recording');
+  const config = jest.mocked(cues.configure);
+  const configured = config.mock.calls.findIndex(([state]) => state.isRecording === true);
+  const said = jest
+    .mocked(cues.say)
+    .mock.calls.findIndex(([cue]) => cue.id.startsWith('sys.rec.start'));
+  expect(config.mock.invocationCallOrder[configured]).toBeLessThan(
+    jest.mocked(cues.say).mock.invocationCallOrder[said],
+  );
   fireEvent.press(screen.getByTestId('camera-record'));
   await act(async () => {
     await captured('/temporary/camera.mp4');
   });
   expect(keepRecording).toHaveBeenCalledWith('/temporary/camera.mp4');
   expect(saveToPhotos).toHaveBeenCalledWith(info.uri);
+  expect(config).toHaveBeenLastCalledWith({ isRecording: false });
   expect(jest.mocked(keepRecording).mock.invocationCallOrder[0]).toBeLessThan(
     jest.mocked(saveToPhotos).mock.invocationCallOrder[0],
   );

@@ -1,4 +1,6 @@
 import { Pressable, StyleSheet, Text, type AccessibilityActionEvent } from 'react-native';
+import { useState } from 'react';
+import { useSettingFeedback } from './useSettingFeedback';
 
 import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
@@ -24,14 +26,24 @@ export function AdjustableRow({
   testID,
 }: AdjustableRowProps) {
   const { colors, typography, layout, spacing } = useTheme();
+  const [focused, setFocused] = useState(false);
+  const feedback = useSettingFeedback(label, valueText);
+  const increment = () => {
+    feedback();
+    onIncrement();
+  };
+  const decrement = () => {
+    feedback();
+    onDecrement();
+  };
 
   const onAction = (e: AccessibilityActionEvent) => {
     switch (e.nativeEvent.actionName) {
       case 'increment':
-        onIncrement();
+        increment();
         break;
       case 'decrement':
-        onDecrement();
+        decrement();
         break;
     }
   };
@@ -45,16 +57,20 @@ export function AdjustableRow({
       accessibilityHint={strings.common.doubleTapToChange}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={onAction}
-      onPress={onIncrement}
+      onPress={increment}
+      focusable
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       testID={testID}
       style={({ pressed }) => [
         styles.row,
         {
           minHeight: layout.minTouchTarget,
+          minWidth: layout.minTouchTarget,
           borderRadius: layout.cornerRadius,
           backgroundColor: colors.surface,
-          borderColor: pressed ? colors.accent : colors.secondaryButton.border,
-          borderWidth: pressed ? layout.focusRingWidth : layout.buttonBorderWidth,
+          borderColor: pressed || focused ? colors.accent : colors.secondaryButton.border,
+          borderWidth: pressed || focused ? layout.focusRingWidth : layout.buttonBorderWidth,
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
           marginBottom: spacing.md,

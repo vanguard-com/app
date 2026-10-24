@@ -1,4 +1,5 @@
 import { fireEvent } from '@testing-library/react-native';
+import * as Native from 'react-native';
 import { useFrameOutput } from 'react-native-vision-camera';
 
 import { act, renderRouter, screen } from 'expo-router/testing-library';
@@ -15,21 +16,28 @@ const INTERACTIVE_ROLES = ['button', 'switch', 'adjustable', 'link'] as const;
 // not counting the Back button.
 const SCREENS: { url: string; maxControls: number; minControls?: number }[] = [
   { url: '/welcome', maxControls: 4 },
+  { url: '/tutorial', maxControls: 4 },
+  { url: '/practice', maxControls: 4 },
+  { url: '/permissions', maxControls: 4 },
   { url: '/camera', maxControls: 6 },
   { url: '/subject', maxControls: 4 },
   { url: '/review', maxControls: 4 },
   { url: '/playback', maxControls: 4 },
+  { url: '/benchmark', maxControls: 4 },
   { url: '/settings', maxControls: 4 },
   { url: '/settings/sound', maxControls: 4 },
   { url: '/settings/feedback', maxControls: 4 },
   { url: '/settings/feedback-types', maxControls: 4 },
   { url: '/settings/recording', maxControls: 4 },
+  { url: '/settings/framing', maxControls: 4 },
+  { url: '/settings/permissions', maxControls: 4 },
+  { url: '/settings/permission', maxControls: 4 },
   { url: '/settings/more', maxControls: 4 },
   { url: '/settings/models', maxControls: 4 },
   { url: '/settings/downloads', maxControls: 4 },
   { url: '/settings/information', maxControls: 4 },
   { url: '/settings/scene-model', maxControls: 4 },
-  // About only has the version text (5 taps toggles the hidden debug overlay).
+  // Version is an accessible button; five activations toggle the hidden debug overlay.
   { url: '/settings/about', maxControls: 4, minControls: 0 },
 ];
 
@@ -51,6 +59,7 @@ describe.each(SCREENS)('$url', ({ url, maxControls, minControls = 1 }) => {
     });
     if (url === '/playback' || url === '/review')
       useSettings.getState().update({ liveFeedback: true });
+    if (url === '/benchmark') useSettings.getState().update({ debugOverlay: true });
     pathname = renderRouter('./app', { initialUrl: url }).getPathname();
     // Let async permission checks settle so state updates happen inside act().
     await act(async () => {});
@@ -75,12 +84,42 @@ describe.each(SCREENS)('$url', ({ url, maxControls, minControls = 1 }) => {
       expect(el.props.accessibilityHint.length).toBeGreaterThan(0);
     }
   });
+
+  it('keeps every control at least 60 points in each direction', () => {
+    for (const element of interactiveElements()) {
+      const style = Native.StyleSheet.flatten(element.props.style);
+      expect(style.minHeight ?? style.height).toBeGreaterThanOrEqual(60);
+      expect(style.minWidth ?? style.width).toBeGreaterThanOrEqual(60);
+    }
+  });
+});
+
+describe('large text and short camera layouts', () => {
+  afterEach(() => jest.restoreAllMocks());
+  it.each([
+    { width: 375, height: 667, scale: 2, fontScale: 2.5 },
+    { width: 812, height: 375, scale: 2, fontScale: 1 },
+  ])('keeps all controls scrollable without adding an analysis output: %j', async (size) => {
+    jest.spyOn(Native, 'useWindowDimensions').mockReturnValue(size);
+    useSettings.getState().update({ onboardingComplete: true });
+    renderRouter('./app', { initialUrl: '/camera' });
+    await act(async () => {});
+    expect(screen.getByTestId('camera-scroll-controls')).toBeTruthy();
+    for (let mode = 0; mode < 4; mode++) {
+      expect(interactiveElements().length).toBeLessThanOrEqual(6);
+      expect(screen.getByTestId('camera-record')).toBeTruthy();
+      expect(screen.getByTestId('camera-subject')).toBeTruthy();
+      expect(screen.getByTestId('vision-camera').props.outputs).toHaveLength(2);
+      fireEvent.press(screen.getByTestId('camera-mode'));
+    }
+  });
 });
 
 describe('first launch', () => {
-  it('sends new users to onboarding', () => {
+  it('sends new users to onboarding', async () => {
     useSettings.getState().reset();
     expect(renderRouter('./app', { initialUrl: '/' }).getPathname()).toBe('/welcome');
+    await act(async () => {});
   });
 
   it('opens the camera once onboarding is complete', async () => {

@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
 
 import { router } from 'expo-router';
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
@@ -7,19 +7,17 @@ import { APP_VERSION, DEBUG_UNLOCK_TAPS, SUPPORT_EMAIL } from '@/config/app';
 import { strings } from '@/i18n';
 import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
-import { announce, useScreenAnnouncement } from '@/utils/accessibility';
+import { cues } from '@/cues';
 
 // Taps further apart than this restart the count.
 const TAP_WINDOW_MS = 1500;
 
 export default function AboutScreen() {
-  const { colors, typography, spacing, layout } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const t = strings.settings;
   const debugOverlay = useSettings((s) => s.debugOverlay);
   const update = useSettings((s) => s.update);
   const taps = useRef<{ count: number; last: number }>({ count: 0, last: 0 });
-
-  useScreenAnnouncement(t.about.label);
 
   const onVersionTap = () => {
     const now = Date.now();
@@ -29,24 +27,24 @@ export default function AboutScreen() {
       taps.current = { count: 0, last: 0 };
       const next = !debugOverlay;
       update({ debugOverlay: next });
-      announce(next ? t.debugEnabled : t.debugDisabled);
+      cues.say({
+        id: 'sys.debug',
+        category: 'system',
+        text: next ? t.debugEnabled : t.debugDisabled,
+        force: true,
+      });
     }
   };
 
   return (
     <Screen>
       <ScreenHeader title={t.about.label} />
-      <Pressable
-        accessibilityRole="text"
-        accessibilityLabel={t.version(APP_VERSION)}
+      <AccessibleButton
+        label={t.version(APP_VERSION)}
+        hint={t.versionHint}
         onPress={onVersionTap}
-        style={{ minHeight: layout.minTouchTarget, justifyContent: 'center' }}
         testID="about-version"
-      >
-        <Text style={[typography.label, { color: colors.textPrimary }]}>
-          {t.version(APP_VERSION)}
-        </Text>
-      </Pressable>
+      />
       <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>
         {t.aboutBody}
       </Text>

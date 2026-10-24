@@ -9,7 +9,6 @@ import {
   type CueType,
   type Verbosity,
 } from '@/store/settingsStore';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 const VERBOSITY: readonly Verbosity[] = ['minimal', 'standard', 'detailed'];
 const CUE_TYPES: readonly CueType[] = ['tone', 'voice', 'both'];
@@ -21,8 +20,6 @@ export default function SoundSettings() {
   const voiceRate = useSettings((s) => s.voiceRate);
   const cueVolume = useSettings((s) => s.cueVolume);
   const update = useSettings((s) => s.update);
-
-  useScreenAnnouncement(t.groups.sound.label);
 
   return (
     <Screen>

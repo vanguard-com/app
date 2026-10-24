@@ -6,7 +6,7 @@ import { subjectLabel } from '@/features/framing/subject';
 import { strings } from '@/i18n';
 import { useSession, type SubjectTarget } from '@/store/sessionStore';
 import { useTheme } from '@/theme';
-import { announce, useScreenAnnouncement } from '@/utils/accessibility';
+import { cues } from '@/cues';
 
 // Phase 2 is face-first. Never offer a target the detector cannot track.
 const OPTIONS: SubjectTarget[] = [{ kind: 'face' }];
@@ -17,11 +17,14 @@ export default function SubjectScreen() {
   const setSubject = useSession((s) => s.setSubject);
   const t = strings.subject;
 
-  useScreenAnnouncement(t.screenAnnouncement);
-
   const choose = (target: SubjectTarget) => {
     setSubject(target);
-    announce(t.selected(subjectLabel(target)));
+    cues.say({
+      id: 'sys.subject.selected',
+      category: 'system',
+      text: t.selected(subjectLabel(target)),
+      force: true,
+    });
     router.back();
   };
 

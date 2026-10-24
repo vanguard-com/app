@@ -39,7 +39,7 @@ this script.
 
 1. Fresh install (or delete app data), open Lumi.
 2. Expected: Welcome screen. With screen reader on you hear "Welcome to Lumi".
-3. Tap Start (screen reader: double tap).
+3. Choose Use camera now for the quick path (screen reader: double tap), or Learn the controls for the guided Phase 7 flow below.
 4. Expected: Camera screen, dark. Screen reader says "Camera. Record button at bottom centre."
 5. Close Lumi fully and open again. Expected: opens straight on Camera, not Welcome.
 
@@ -80,7 +80,7 @@ Note any zone read out of order, read twice, or missing.
 6. Fully close Lumi, reopen, return to Settings. Expected: all changes kept.
 7. More > About. Tap the version text 5 times quickly. Expected: "Debug overlay on". 5 more times:
    "Debug overlay off".
-8. More > Replay tutorial. Expected: Welcome screen with a Back button; Start returns to More.
+8. More > Replay tutorial. Expected: Welcome with Back; lessons lead through access review and practice. Finish tutorial returns to More without resetting preferences or the previous clip.
 9. More > Privacy policy. Expected: browser opens the policy page.
 
 ### 0.6 Visual checks (screen reader off)
@@ -238,3 +238,9 @@ Follow [PHASE_5.md](PHASE_5.md#required-phone-acceptance) for the complete devic
 ## Phase 6 review, sharing and command acceptance
 
 Follow [PHASE_6.md](PHASE_6.md#phone-acceptance) for the complete Android/iPhone/iPad checklist and expected results. The central acceptance flow is **set Face subject → record with audio → Review → Play/Pause → Share or “post video” → choose YouTube when offered → complete posting there**. Also verify Photos denial, cancelled share dialogs, MP4/MOV handling, recorded command phrases, native playback interruptions, local voice analysis, measured coverage, Retake preserving Photos, and all controls with VoiceOver/TalkBack at large text. Record the receiving app/version and an actual completed handoff; cloud tests cannot establish posting support on installed third-party apps.
+
+## Phase 7 onboarding, accessibility and performance acceptance
+
+Use [PHASE_7.md](PHASE_7.md#phone-acceptance) for the complete first-use/replay, permission, practice, large-text, keyboard, reduced-motion and two-minute performance checks. The [audit](ACCESSIBILITY_AUDIT.md) distinguishes automated evidence from pending physical results. Camera and recording → Framing preferences now contains Auto lens switching and the safe zone. More → App access contains permission status/help. On iPhone, volume practice needs a permitted running camera preview; practice has no audio/recording outputs.
+
+Run the complete Face → framing/lighting → record → Review → Play/Pause → Save → YouTube share journey with VoiceOver and TalkBack without looking at the screen. Record every instance of sighted assistance, phone/OS/commit, text/display size, reader rate and actual performance observations. The cloud audit does not complete this acceptance gate.

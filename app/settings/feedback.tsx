@@ -5,15 +5,12 @@ import { router } from 'expo-router';
 import { AccessibleButton, Screen, ScreenHeader, ToggleRow } from '@/components';
 import { strings } from '@/i18n';
 import { useSettings } from '@/store/settingsStore';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 export default function FeedbackSettings() {
   const t = strings.settings;
   const { colors, typography, spacing } = useTheme();
   const liveFeedback = useSettings((s) => s.liveFeedback);
   const update = useSettings((s) => s.update);
-
-  useScreenAnnouncement(t.groups.feedback.label);
 
   return (
     <Screen>

@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  AppState,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { router, useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -45,6 +54,8 @@ const t = strings.camera;
 export default function CameraScreen() {
   const { colors, typography, spacing, layout } = useTheme('dark');
   const insets = useSafeAreaInsets();
+  const viewport = useWindowDimensions();
+  const compactControls = viewport.fontScale > 1.4 || viewport.height < 520;
   const isFocused = useIsFocused();
   const appActive = useAppActive();
 
@@ -65,6 +76,7 @@ export default function CameraScreen() {
   const liveFeedback = useSettings((s) => s.liveFeedback);
   const voiceWhileRecording = useSettings((s) => s.voiceCommandsWhileRecording);
   const elapsedInterval = useSettings((s) => s.elapsedTimeInterval);
+  const permissionsReviewed = useSettings((s) => s.permissionsReviewed);
 
   const [cameraAllowed, setCameraAllowed] = useState(
     () => VisionCamera.cameraPermissionStatus === 'authorized',
@@ -72,6 +84,7 @@ export default function CameraScreen() {
   const [micAllowed, setMicAllowed] = useState(hasMicrophonePermission);
   const [speechAllowed, setSpeechAllowed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [recordFocused, setRecordFocused] = useState(false);
   const isRecording = phase === 'recording';
   const volumeButton = isHardwareButtonSupported();
   const debugOverlay = useSettings((s) => s.debugOverlay);
@@ -219,21 +232,53 @@ export default function CameraScreen() {
     void refreshModels();
   }, [setMode]);
 
-  useScreenAnnouncement(t.screenAnnouncement);
+  useScreenAnnouncement(
+    compactControls ? `${t.preview.label}. ${t.compactControls}` : t.screenAnnouncement,
+  );
   const elapsed = useElapsed(startedAt);
 
-  // Permissions: explained by voice, asked one at a time, the first time the camera opens.
-  const permissionFlowStarted = useRef(false);
+  // Leaving the screen during an explanation must not open a late permission dialog.
+  const permissionRequest = useRef<AbortController | null>(null);
   useEffect(() => {
-    if (!isFocused || permissionFlowStarted.current) return;
-    permissionFlowStarted.current = true;
-    (async () => {
-      setCameraAllowed(await ensureCameraPermission());
-      const mic = await ensureMicrophonePermission();
-      setMicAllowed(mic);
-      if (mic) setSpeechAllowed(await ensureSpeechPermission());
+    if (!isFocused || !appActive || phase !== 'idle') return;
+    const controller = new AbortController();
+    permissionRequest.current = controller;
+    const signal = controller.signal;
+    void (async () => {
+      try {
+        if (permissionsReviewed) {
+          const speech = await hasSpeechPermission();
+          if (signal.aborted) return;
+          setCameraAllowed(VisionCamera.cameraPermissionStatus === 'authorized');
+          setMicAllowed(hasMicrophonePermission());
+          setSpeechAllowed(speech);
+          return;
+        }
+        const camera = await ensureCameraPermission(signal);
+        if (signal.aborted) return;
+        setCameraAllowed(camera);
+        const mic = await ensureMicrophonePermission(signal);
+        if (signal.aborted) return;
+        setMicAllowed(mic);
+        if (mic) {
+          const speech = await ensureSpeechPermission(signal);
+          if (!signal.aborted) setSpeechAllowed(speech);
+        }
+      } catch {
+        if (!signal.aborted)
+          cues.say({
+            id: 'perm.camera.failed',
+            category: 'system',
+            text: strings.permissions.failed,
+            force: true,
+          });
+      }
     })();
-  }, [isFocused]);
+    return () => {
+      controller.abort();
+      if (permissionRequest.current === controller) permissionRequest.current = null;
+    };
+  }, [isFocused, appActive, permissionsReviewed, phase]);
 
   // Pick up permissions changed in the phone's settings while Lumi was in the background.
   useEffect(() => {
@@ -301,6 +346,7 @@ export default function CameraScreen() {
         return;
       }
       cameraRef.current?.cancelZoomAnimation();
+      permissionRequest.current?.abort();
       scene.cancel();
       recorder.start();
     }
@@ -564,6 +610,176 @@ export default function CameraScreen() {
     : !cameraReady
       ? t.starting
       : null;
+  const debugText =
+    mode === 'lighting'
+      ? strings.lighting.debug(lighting.result.overall, lighting.result.face)
+      : mode === 'framing'
+        ? strings.framing.debug(framing.fps, framing.result.box)
+        : t.debugFramingOnly;
+
+  const flipControl = (
+    <AccessibleButton
+      scheme="dark"
+      label={t.flip.label}
+      hint={t.flip.hint}
+      icon="⟲"
+      text=""
+      onPress={flip}
+      disabled={phase !== 'idle'}
+      testID="camera-flip"
+    />
+  );
+  const previewControl = (
+    <Pressable
+      style={
+        compactControls
+          ? { minHeight: 160, minWidth: 60, justifyContent: 'center', alignItems: 'center' }
+          : [
+              StyleSheet.absoluteFill,
+              styles.layerPreview,
+              styles.center,
+              { minWidth: layout.minTouchTarget, minHeight: layout.minTouchTarget },
+            ]
+      }
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={t.preview.label}
+      accessibilityHint={t.preview.hint}
+      onPress={speakStatus}
+      testID="camera-preview"
+    >
+      {centreMessage || compactControls ? (
+        <View
+          style={{
+            backgroundColor: colors.surfaceOverlay,
+            borderRadius: layout.cornerRadius,
+            padding: spacing.md,
+            marginHorizontal: spacing.xl,
+          }}
+        >
+          <Text style={[typography.body, styles.centerText, { color: colors.textPrimary }]}>
+            {centreMessage ?? t.preview.label}
+          </Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+  const permissionControl = (
+    <AccessibleButton
+      scheme="dark"
+      label={strings.permissions.openSettings.label}
+      hint={strings.permissions.openSettings.hint}
+      onPress={() => {
+        void Linking.openSettings().catch(() =>
+          cues.say({
+            id: 'sys.settings.failed',
+            category: 'system',
+            text: strings.permissions.settingsFailed,
+            force: true,
+          }),
+        );
+      }}
+      testID="camera-open-settings"
+    />
+  );
+  const modeControl = (
+    <>
+      <AccessibleButton
+        scheme="dark"
+        label={t.mode.label(t.modes[mode])}
+        hint={t.mode.hint}
+        text={t.modes[mode]}
+        disabled={phase !== 'idle'}
+        onPress={() =>
+          setMode(
+            mode === 'framing'
+              ? 'lighting'
+              : mode === 'lighting'
+                ? 'feedback'
+                : mode === 'feedback'
+                  ? 'background'
+                  : 'framing',
+          )
+        }
+        testID="camera-mode"
+      />
+      {mode === 'background' ? (
+        <AccessibleButton
+          scheme="dark"
+          label={scene.busy ? strings.background.cancel.label : strings.background.describe.label}
+          hint={scene.busy ? strings.background.cancel.hint : strings.background.describe.hint}
+          disabled={phase !== 'idle'}
+          onPress={scene.busy ? scene.cancel : () => void scene.describe()}
+          testID="camera-describe"
+        />
+      ) : null}
+      {mode === 'lighting' ? (
+        <AccessibleButton
+          scheme="dark"
+          label={scan.running ? strings.lighting.cancelScan.label : strings.lighting.scan.label}
+          hint={scan.running ? strings.lighting.cancelScan.hint : strings.lighting.scan.hint}
+          disabled={phase !== 'idle'}
+          onPress={beginScan}
+          testID="camera-scan"
+        />
+      ) : null}
+    </>
+  );
+  const recordControl = (
+    <Pressable
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={isRecording ? t.record.stopLabel : t.record.idleLabel}
+      accessibilityHint={recordHint}
+      accessibilityState={{
+        selected: isRecording,
+        busy: phase === 'starting' || phase === 'stopping',
+        disabled: phase === 'starting' || phase === 'stopping',
+      }}
+      disabled={phase === 'starting' || phase === 'stopping'}
+      focusable={phase !== 'starting' && phase !== 'stopping'}
+      onFocus={() => setRecordFocused(true)}
+      onBlur={() => setRecordFocused(false)}
+      onPress={toggleRecording}
+      testID="camera-record"
+      style={({ pressed }) => [
+        styles.center,
+        {
+          width: layout.recordButtonSize,
+          height: layout.recordButtonSize,
+          borderRadius: layout.recordButtonSize / 2,
+          backgroundColor: colors.primaryButton.background,
+          borderWidth: layout.focusRingWidth,
+          borderColor: recordFocused
+            ? colors.primaryButton.text
+            : pressed
+              ? colors.textPrimary
+              : colors.primaryButton.border,
+        },
+      ]}
+    >
+      {/* Shape, not only colour, shows state: circle = ready, square = recording. */}
+      <View
+        style={{
+          width: isRecording ? 32 : 40,
+          height: isRecording ? 32 : 40,
+          borderRadius: isRecording ? 6 : 20,
+          backgroundColor: colors.primaryButton.text,
+        }}
+      />
+    </Pressable>
+  );
+  const subjectControl = (
+    <AccessibleButton
+      scheme="dark"
+      label={t.subject.label(subjectLabel(subject))}
+      hint={t.subject.hint}
+      text={subjectLabel(subject)}
+      onPress={() => router.push('/subject')}
+      disabled={phase !== 'idle'}
+      testID="camera-subject"
+    />
+  );
 
   return (
     <View style={[styles.fill, { backgroundColor: colors.background }]}>
@@ -615,7 +831,7 @@ export default function CameraScreen() {
 
       {/* At most six camera controls, with mode and scan anchored at the left edge. */}
 
-      {isRecording ? (
+      {isRecording && !compactControls ? (
         <View
           style={[
             styles.timer,
@@ -638,57 +854,18 @@ export default function CameraScreen() {
         </View>
       ) : null}
 
-      {cameraAllowed ? (
+      {cameraAllowed && !compactControls ? (
         <View style={[styles.corner, styles.layerControls, { top: edge.top, right: edge.right }]}>
-          <AccessibleButton
-            scheme="dark"
-            label={t.flip.label}
-            hint={t.flip.hint}
-            icon="⟲"
-            text=""
-            onPress={flip}
-            testID="camera-flip"
-          />
+          {flipControl}
         </View>
       ) : null}
 
       {/* Centre: full screen camera area. Single tap speaks current status. */}
-      <Pressable
-        style={[StyleSheet.absoluteFill, styles.layerPreview, styles.center]}
-        accessible
-        accessibilityRole="button"
-        accessibilityLabel={t.preview.label}
-        accessibilityHint={t.preview.hint}
-        onPress={speakStatus}
-        testID="camera-preview"
-      >
-        {centreMessage ? (
-          <View
-            style={{
-              backgroundColor: colors.surfaceOverlay,
-              borderRadius: layout.cornerRadius,
-              padding: spacing.md,
-              marginHorizontal: spacing.xl,
-            }}
-          >
-            <Text style={[typography.body, styles.centerText, { color: colors.textPrimary }]}>
-              {centreMessage}
-            </Text>
-          </View>
-        ) : null}
-      </Pressable>
+      {!compactControls ? previewControl : null}
 
-      {!cameraAllowed ? (
+      {!cameraAllowed && !compactControls ? (
         <View style={[styles.settingsLink, styles.layerControls]} pointerEvents="box-none">
-          <AccessibleButton
-            scheme="dark"
-            label={strings.permissions.openSettings.label}
-            hint={strings.permissions.openSettings.hint}
-            onPress={() => {
-              Linking.openSettings().catch(() => {});
-            }}
-            testID="camera-open-settings"
-          />
+          {permissionControl}
         </View>
       ) : null}
 
@@ -711,7 +888,7 @@ export default function CameraScreen() {
           }}
         />
       ) : null}
-      {cameraReady ? (
+      {cameraReady && !compactControls ? (
         <View
           pointerEvents="none"
           style={[styles.guidance, { backgroundColor: colors.surfaceOverlay, top: edge.top + 80 }]}
@@ -723,112 +900,85 @@ export default function CameraScreen() {
             {guidanceText}
           </Text>
           {debugOverlay ? (
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              {mode === 'lighting'
-                ? strings.lighting.debug(lighting.result.overall, lighting.result.face)
-                : strings.framing.debug(framing.fps, framing.result.box)}
-            </Text>
+            <Text style={[typography.body, { color: colors.textSecondary }]}>{debugText}</Text>
           ) : null}
         </View>
       ) : null}
 
-      <View
-        style={[
-          styles.corner,
-          styles.layerControls,
-          { bottom: edge.bottom + 100, left: edge.left },
-        ]}
-      >
-        <AccessibleButton
-          scheme="dark"
-          label={t.mode.label(t.modes[mode])}
-          hint={t.mode.hint}
-          text={t.modes[mode]}
-          disabled={phase !== 'idle'}
-          onPress={() =>
-            setMode(
-              mode === 'framing'
-                ? 'lighting'
-                : mode === 'lighting'
-                  ? 'feedback'
-                  : mode === 'feedback'
-                    ? 'background'
-                    : 'framing',
-            )
-          }
-          testID="camera-mode"
-        />
-        {mode === 'background' ? (
-          <AccessibleButton
-            scheme="dark"
-            label={scene.busy ? strings.background.cancel.label : strings.background.describe.label}
-            hint={scene.busy ? strings.background.cancel.hint : strings.background.describe.hint}
-            disabled={phase !== 'idle'}
-            onPress={scene.busy ? scene.cancel : () => void scene.describe()}
-            testID="camera-describe"
-          />
-        ) : null}
-        {mode === 'lighting' ? (
-          <AccessibleButton
-            scheme="dark"
-            label={scan.running ? strings.lighting.cancelScan.label : strings.lighting.scan.label}
-            hint={scan.running ? strings.lighting.cancelScan.hint : strings.lighting.scan.hint}
-            disabled={phase !== 'idle'}
-            onPress={beginScan}
-            testID="camera-scan"
-          />
-        ) : null}
-      </View>
-
-      <View
-        style={[styles.recordWrap, styles.layerControls, { bottom: edge.bottom }]}
-        pointerEvents="box-none"
-      >
-        <Pressable
-          accessible
-          accessibilityRole="button"
-          accessibilityLabel={isRecording ? t.record.stopLabel : t.record.idleLabel}
-          accessibilityHint={recordHint}
-          accessibilityState={{ selected: isRecording, busy: phase === 'starting' }}
-          onPress={toggleRecording}
-          testID="camera-record"
-          style={({ pressed }) => [
-            styles.center,
-            {
-              width: layout.recordButtonSize,
-              height: layout.recordButtonSize,
-              borderRadius: layout.recordButtonSize / 2,
-              backgroundColor: colors.primaryButton.background,
-              borderWidth: layout.focusRingWidth,
-              borderColor: pressed ? colors.textPrimary : colors.primaryButton.border,
-            },
+      {!compactControls ? (
+        <View
+          style={[
+            styles.corner,
+            styles.layerControls,
+            { bottom: edge.bottom + 100, left: edge.left },
           ]}
         >
-          {/* Shape, not only colour, shows state: circle = ready, square = recording. */}
-          <View
-            style={{
-              width: isRecording ? 32 : 40,
-              height: isRecording ? 32 : 40,
-              borderRadius: isRecording ? 6 : 20,
-              backgroundColor: colors.primaryButton.text,
-            }}
-          />
-        </Pressable>
-      </View>
+          {modeControl}
+        </View>
+      ) : null}
 
-      <View
-        style={[styles.corner, styles.layerControls, { bottom: edge.bottom, right: edge.right }]}
-      >
-        <AccessibleButton
-          scheme="dark"
-          label={t.subject.label(subjectLabel(subject))}
-          hint={t.subject.hint}
-          text={subjectLabel(subject)}
-          onPress={() => router.push('/subject')}
-          disabled={phase !== 'idle'}
-          testID="camera-subject"
-        />
-      </View>
+      {!compactControls ? (
+        <View
+          style={[styles.recordWrap, styles.layerControls, { bottom: edge.bottom }]}
+          pointerEvents="box-none"
+        >
+          {recordControl}
+        </View>
+      ) : null}
+
+      {!compactControls ? (
+        <View
+          style={[styles.corner, styles.layerControls, { bottom: edge.bottom, right: edge.right }]}
+        >
+          {subjectControl}
+        </View>
+      ) : null}
+      {compactControls ? (
+        <ScrollView
+          style={[StyleSheet.absoluteFill, { zIndex: 3 }]}
+          contentContainerStyle={{
+            paddingTop: edge.top,
+            paddingBottom: edge.bottom,
+            paddingLeft: edge.left,
+            paddingRight: edge.right,
+            gap: spacing.md,
+          }}
+          testID="camera-scroll-controls"
+        >
+          {cameraAllowed ? flipControl : permissionControl}
+          {isRecording ? (
+            <Text
+              style={[
+                typography.timer,
+                { color: colors.textPrimary, backgroundColor: colors.surfaceOverlay },
+              ]}
+              accessibilityLabel={t.timerLabel(strings.common.duration(minutes * 60 + seconds))}
+            >{`● ${formatClock(elapsed)}`}</Text>
+          ) : null}
+          {previewControl}
+          <Text
+            style={[
+              typography.body,
+              { color: colors.textPrimary, backgroundColor: colors.surfaceOverlay },
+            ]}
+          >
+            {t.compactControls}
+          </Text>
+          {debugOverlay ? (
+            <Text
+              style={[
+                typography.body,
+                { color: colors.textPrimary, backgroundColor: colors.surfaceOverlay },
+              ]}
+            >
+              {debugText}
+            </Text>
+          ) : null}
+          <View style={{ alignItems: 'center' }}>{recordControl}</View>
+          {modeControl}
+          {subjectControl}
+        </ScrollView>
+      ) : null}
     </View>
   );
 }
