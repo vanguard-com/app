@@ -1,6 +1,7 @@
 import * as MediaLibrary from 'expo-media-library/legacy';
 
 import { saveToPhotos } from '../files';
+import { useSettings } from '@/store/settingsStore';
 
 jest.mock('@/cues', () => ({ speakAndWait: jest.fn(async () => {}) }));
 jest.mock('expo-file-system', () => ({
@@ -10,7 +11,27 @@ jest.mock('expo-file-system', () => ({
 }));
 
 describe('photo saving fallback', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useSettings.getState().reset();
+  });
+  it('does not automatically re-prompt a reviewed Photos choice, but allows explicit Save retry', async () => {
+    useSettings.getState().update({ permissionsReviewed: true });
+    jest
+      .mocked(MediaLibrary.getPermissionsAsync)
+      .mockResolvedValueOnce({ granted: false, canAskAgain: true } as Awaited<
+        ReturnType<typeof MediaLibrary.getPermissionsAsync>
+      >);
+    expect(await saveToPhotos('file:///video.mp4')).toBe('denied');
+    expect(MediaLibrary.requestPermissionsAsync).not.toHaveBeenCalled();
+    jest
+      .mocked(MediaLibrary.getPermissionsAsync)
+      .mockResolvedValueOnce({ granted: false, canAskAgain: true } as Awaited<
+        ReturnType<typeof MediaLibrary.getPermissionsAsync>
+      >);
+    expect(await saveToPhotos('file:///video.mp4', true)).toBe('saved');
+    expect(MediaLibrary.requestPermissionsAsync).toHaveBeenCalledWith(true);
+  });
   it('saves with add-only permission', async () => {
     expect(await saveToPhotos('file:///video.mp4')).toBe('saved');
     expect(MediaLibrary.getPermissionsAsync).toHaveBeenCalledWith(true);

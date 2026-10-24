@@ -3,6 +3,7 @@ import type { CameraRef } from 'react-native-vision-camera';
 import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
 
 import { useFraming } from '../useFraming';
+import { useSettings } from '@/store/settingsStore';
 
 jest.mock('@/cues', () => ({
   cues: { say: jest.fn(), clearCategory: jest.fn(), guideTone: jest.fn(() => false) },
@@ -13,8 +14,41 @@ describe('preview-to-phone guidance integration', () => {
     jest.useFakeTimers();
     jest.setSystemTime(0);
     jest.clearAllMocks();
+    useSettings.getState().reset();
   });
   afterEach(() => jest.useRealTimers());
+
+  it('processes every observation without redrawing React for identical guidance', () => {
+    const camera = {
+      current: {
+        preview: {},
+        convertCameraPointToViewPoint: (p: { x: number; y: number }) => p,
+      } as unknown as CameraRef,
+    };
+    const observation = jest.fn();
+    let renders = 0;
+    const { result, unmount } = renderHook(() => {
+      renders++;
+      return useFraming(camera, 'front', true, { width: 1000, height: 1000 }, false, observation);
+    });
+    const options = jest.mocked(createFaceDetectorOutput).mock.calls.at(-1)![0];
+    const initial = renders;
+    for (let index = 0; index < 100; index++) {
+      jest.setSystemTime(index * 83);
+      act(() =>
+        options.onFacesDetected([
+          {
+            bounds: { x: 350 + (index % 3), y: 250, width: 300, height: 400 },
+            trackingId: 1,
+          } as unknown as Face,
+        ]),
+      );
+    }
+    expect(observation).toHaveBeenCalledTimes(100);
+    expect(result.current.result.state).toBe('good');
+    expect(renders - initial).toBeLessThanOrEqual(4);
+    unmount();
+  });
 
   it.each(['front', 'back'] as const)(
     'uses the visible offset directly with auto mirroring: %s',

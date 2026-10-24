@@ -3,7 +3,6 @@ import { router, type Href } from 'expo-router';
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
 import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 // Max 4 controls per screen, so settings are split into 4 groups.
 const GROUPS: { key: keyof typeof strings.settings.groups; href: Href }[] = [
@@ -16,7 +15,6 @@ const GROUPS: { key: keyof typeof strings.settings.groups; href: Href }[] = [
 export default function SettingsHome() {
   const { spacing } = useTheme();
   const t = strings.settings;
-  useScreenAnnouncement(t.screenAnnouncement);
 
   return (
     <Screen>

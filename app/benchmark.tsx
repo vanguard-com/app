@@ -11,7 +11,6 @@ import { refreshModels, useModels } from '@/features/background/models';
 import { strings } from '@/i18n';
 import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 export default function BenchmarkScreen() {
   const t = strings.background,
@@ -22,7 +21,6 @@ export default function BenchmarkScreen() {
     [status, setStatus] = useState(t.benchmark.intro);
   const job = useRef(0),
     mounted = useRef(true);
-  useScreenAnnouncement(t.benchmark.label);
   useEffect(() => {
     mounted.current = true;
     const counter = job;

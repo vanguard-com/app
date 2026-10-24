@@ -64,6 +64,14 @@ jest.mock('expo-speech-recognition', () => ({
     abort: jest.fn(),
     getPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),
     requestPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),
+    getSpeechRecognizerPermissionsAsync: jest.fn(async () => ({
+      granted: false,
+      canAskAgain: false,
+    })),
+    requestSpeechRecognizerPermissionsAsync: jest.fn(async () => ({
+      granted: false,
+      canAskAgain: false,
+    })),
     supportsOnDeviceRecognition: jest.fn(() => false),
     getStateAsync: jest.fn(async () => 'inactive'),
     addListener: jest.fn(() => ({ remove: jest.fn() })),

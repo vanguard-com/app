@@ -15,7 +15,6 @@ import { resolveManifest, type ModelManifest } from '@/features/background/catal
 import { strings } from '@/i18n';
 import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 export default function SceneModelScreen() {
   const { model } = useLocalSearchParams<{ model?: string }>(),
@@ -31,7 +30,6 @@ export default function SceneModelScreen() {
     [message, setMessage] = useState(t.checking),
     [working, setWorking] = useState(false);
   const busy = phase !== 'idle' || working;
-  useScreenAnnouncement(t.modelNames[kind]);
   const hasModel = !!installed;
   useEffect(() => {
     void refreshModels();
@@ -161,7 +159,14 @@ export default function SceneModelScreen() {
               kind === 'detailed'
                 ? 'https://ai.google.dev/gemma/terms'
                 : 'https://www.apache.org/licenses/LICENSE-2.0',
-            ).catch(() => {});
+            ).catch(() =>
+              cues.say({
+                id: 'sys.link.failed',
+                category: 'system',
+                text: strings.common.linkFailed,
+                force: true,
+              }),
+            );
           }}
         />
       ) : null}

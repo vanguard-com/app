@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { useCallback, useEffect, useState, type RefObject } from 'react';
+import { AccessibilityInfo, type Text } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { useAppActive } from '@/hooks/useAppActive';
 
 import { announce } from './announce';
 
@@ -10,12 +11,29 @@ export { announce };
 const SCREEN_ANNOUNCE_DELAY_MS = 600;
 
 /** Announce `message` every time the screen gains focus. */
-export function useScreenAnnouncement(message: string): void {
+export function useScreenAnnouncement(
+  message: string,
+  enabled = true,
+  target?: RefObject<Text | null>,
+): void {
+  const active = useAppActive();
+  const reader = useScreenReaderEnabled();
   useFocusEffect(
     useCallback(() => {
-      const id = setTimeout(() => announce(message), SCREEN_ANNOUNCE_DELAY_MS);
+      if (!enabled || !active) return;
+      const id = setTimeout(() => {
+        if (reader && target?.current) {
+          try {
+            AccessibilityInfo.sendAccessibilityEvent(target.current, 'focus');
+            return;
+          } catch {
+            /* An unmounted native heading falls back to an announcement. */
+          }
+        }
+        announce(message);
+      }, SCREEN_ANNOUNCE_DELAY_MS);
       return () => clearTimeout(id);
-    }, [message]),
+    }, [message, enabled, active, reader, target]),
   );
 }
 
@@ -24,9 +42,11 @@ export function useScreenReaderEnabled(): boolean {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
     let mounted = true;
-    AccessibilityInfo.isScreenReaderEnabled().then((value) => {
-      if (mounted) setEnabled(value);
-    });
+    AccessibilityInfo.isScreenReaderEnabled()
+      .then((value) => {
+        if (mounted) setEnabled(value);
+      })
+      .catch(() => {});
     const sub = AccessibilityInfo.addEventListener('screenReaderChanged', setEnabled);
     return () => {
       mounted = false;
@@ -34,4 +54,22 @@ export function useScreenReaderEnabled(): boolean {
     };
   }, []);
   return enabled;
+}
+
+export function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(true);
+  useEffect(() => {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then((value) => {
+        if (mounted) setReduced(value);
+      })
+      .catch(() => {});
+    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
+    return () => {
+      mounted = false;
+      listener.remove();
+    };
+  }, []);
+  return reduced;
 }

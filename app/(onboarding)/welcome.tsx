@@ -1,30 +1,20 @@
 import { Text } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-
+import { useLocalSearchParams } from 'expo-router';
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { finishOnboarding, nextOnboarding } from '@/features/onboarding/navigation';
+import { useNarration } from '@/features/onboarding/useNarration';
 import { strings } from '@/i18n';
-import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
-// Phase 0 placeholder. The spoken tutorial, practice mode and permission flow arrive in Phase 7.
 export default function Welcome() {
   const { colors, typography, spacing } = useTheme();
   const { replay } = useLocalSearchParams<{ replay?: string }>();
-  const update = useSettings((s) => s.update);
   const t = strings.onboarding;
-
-  useScreenAnnouncement(t.screenAnnouncement);
-
-  const finish = () => {
-    update({ onboardingComplete: true });
-    if (replay && router.canGoBack()) router.back();
-    else router.replace('/camera');
-  };
-
+  const narration = useNarration('tutorial.welcome', `${t.title}. ${t.intro}`);
+  const skip = replay === '1' ? t.replayFinish : t.skip;
   return (
     <Screen>
-      <ScreenHeader title={t.title} hideBack={!replay} />
+      <ScreenHeader title={t.title} hideBack={replay !== '1'} announce={false} />
       <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.xl }]}>
         {t.intro}
       </Text>
@@ -32,8 +22,20 @@ export default function Welcome() {
         variant="primary"
         label={t.start.label}
         hint={t.start.hint}
-        onPress={finish}
+        onPress={() => nextOnboarding('/tutorial', replay === '1')}
         testID="welcome-start"
+      />
+      <AccessibleButton
+        label={t.again.label}
+        hint={t.again.hint}
+        onPress={narration.replay}
+        testID="welcome-repeat"
+      />
+      <AccessibleButton
+        label={skip.label}
+        hint={skip.hint}
+        onPress={() => finishOnboarding(replay === '1')}
+        testID="welcome-skip"
       />
     </Screen>
   );

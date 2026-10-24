@@ -1,4 +1,5 @@
-import { AdjustableRow, Screen, ScreenHeader, ToggleRow } from '@/components';
+import { router } from 'expo-router';
+import { AccessibleButton, AdjustableRow, Screen, ScreenHeader, ToggleRow } from '@/components';
 import { strings } from '@/i18n';
 import {
   nextInCycle,
@@ -6,7 +7,6 @@ import {
   type ElapsedTimeInterval,
   type RecordingCueMode,
 } from '@/store/settingsStore';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 const CUE_MODES: readonly RecordingCueMode[] = ['earphonesOnly', 'pause', 'always'];
 const INTERVALS: readonly ElapsedTimeInterval[] = [30, 60, 0];
@@ -15,12 +15,9 @@ const INTERVAL_KEY = { 0: 'off', 30: 's30', 60: 's60' } as const;
 export default function RecordingSettings() {
   const t = strings.settings;
   const recordingCues = useSettings((s) => s.recordingCues);
-  const autoLens = useSettings((s) => s.autoLens);
   const interval = useSettings((s) => s.elapsedTimeInterval);
   const voiceWhileRecording = useSettings((s) => s.voiceCommandsWhileRecording);
   const update = useSettings((s) => s.update);
-
-  useScreenAnnouncement(t.groups.camera.label);
 
   return (
     <Screen>
@@ -32,11 +29,11 @@ export default function RecordingSettings() {
         onDecrement={() => update({ recordingCues: nextInCycle(CUE_MODES, recordingCues, -1) })}
         testID="setting-recording-cues"
       />
-      <ToggleRow
-        label={t.autoLens.label}
-        value={autoLens}
-        onChange={(value) => update({ autoLens: value })}
-        testID="setting-auto-lens"
+      <AccessibleButton
+        label={t.framing.label}
+        hint={t.framing.hint}
+        onPress={() => router.push('/settings/framing')}
+        testID="setting-framing"
       />
       <AdjustableRow
         label={t.elapsedTime.label}

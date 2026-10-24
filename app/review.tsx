@@ -53,8 +53,8 @@ export default function ReviewScreen() {
         id: `sys.review.${current?.uri ?? 'empty'}`,
         category: 'system',
         text: current
-          ? `${recordingSummary(current, useSettings.getState().verbosity === 'detailed')} ${current.savedToPhotos ? t.saved : current.autoSaveResult === 'denied' ? t.saveDenied : current.autoSaveResult === 'failed' ? t.saveFailed : t.nextSteps}`
-          : t.empty,
+          ? `${t.title}. ${recordingSummary(current, useSettings.getState().verbosity === 'detailed')} ${current.savedToPhotos ? t.saved : current.autoSaveResult === 'denied' ? t.saveDenied : current.autoSaveResult === 'failed' ? t.saveFailed : t.nextSteps}`
+          : `${t.title}. ${t.empty}`,
         force: true,
       });
       return () => {
@@ -73,7 +73,7 @@ export default function ReviewScreen() {
     operation.current = true;
     setBusy(true);
     try {
-      const result = await saveToPhotos(current.uri);
+      const result = await saveToPhotos(current.uri, true);
       if (result === 'saved' && useSession.getState().lastRecording?.uri === current.uri)
         useSession.getState().markSaved();
       if (!mounted.current || !live.current.isFocused || !live.current.appActive) return;
@@ -204,7 +204,7 @@ export default function ReviewScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title={t.title} hideBack />
+      <ScreenHeader announce={false} title={t.title} hideBack />
       <Text style={[typography.heading, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
         {recording ? recordingSummary(recording, detailed) : t.empty}
       </Text>

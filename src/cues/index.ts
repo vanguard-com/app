@@ -21,15 +21,31 @@ export const cues = new CueEngine({
  * Speak a system message and resolve when it has finished (or after a safety timeout), e.g. to
  * explain a permission before the system dialog appears.
  */
-export function speakAndWait(text: string, id = `wait.${text}`): Promise<void> {
+export function speakAndWait(
+  text: string,
+  id = `wait.${text}`,
+  signal?: AbortSignal,
+): Promise<void> {
   return new Promise((resolve) => {
     let done = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const finish = () => {
       if (done) return;
       done = true;
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
       resolve();
     };
+    const abort = () => {
+      cues.clearIds([id]);
+      finish();
+    };
+    if (signal?.aborted) {
+      finish();
+      return;
+    }
+    signal?.addEventListener('abort', abort, { once: true });
     cues.say({ id, category: 'system', text, onFinished: finish });
-    setTimeout(finish, Math.max(4000, text.length * 120));
+    if (!done) timer = setTimeout(finish, Math.max(4000, text.length * 120));
   });
 }

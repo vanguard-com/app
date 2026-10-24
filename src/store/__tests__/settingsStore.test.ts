@@ -13,6 +13,34 @@ describe('settings store', () => {
     useSettings.getState().reset();
   });
 
+  it('retains reviewed access choices and custom sound settings after rehydration', async () => {
+    const settings = useSettings.getState();
+    settings.update({ permissionsReviewed: true, onboardingComplete: true, voiceRate: 1.5 });
+    const saved = storage.getString(SETTINGS_STORAGE_KEY)!;
+    settings.reset();
+    storage.set(SETTINGS_STORAGE_KEY, saved);
+    await useSettings.persist.rehydrate();
+    expect(useSettings.getState()).toMatchObject({
+      permissionsReviewed: true,
+      onboardingComplete: true,
+      voiceRate: 1.5,
+    });
+  });
+
+  it('adds the access-review default when hydrating an older installation', async () => {
+    storage.set(
+      SETTINGS_STORAGE_KEY,
+      JSON.stringify({ state: { onboardingComplete: true, voiceRate: 1.5 }, version: 1 }),
+    );
+    await useSettings.persist.rehydrate();
+    expect(useSettings.getState()).toMatchObject({
+      onboardingComplete: true,
+      voiceRate: 1.5,
+      permissionsReviewed: false,
+      feedback: { eyeContact: true, expression: true, posture: true, voice: true },
+    });
+  });
+
   it('starts with defaults', () => {
     const s = useSettings.getState();
     expect(s.verbosity).toBe('standard');

@@ -211,6 +211,8 @@ export const en = {
     off: 'Off',
     doubleTapToChange: 'Double tap to change, or swipe up or down',
     toggleHint: (isOn: boolean) => `Double tap to turn ${isOn ? 'off' : 'on'}`,
+    linkFailed:
+      'The link could not be opened. Please try again or use the support contact in About.',
   },
 
   onboarding: {
@@ -219,13 +221,86 @@ export const en = {
     intro:
       'Lumi helps you film yourself without looking at the screen. It guides you with sound, voice and vibration.',
     start: {
-      label: 'Start',
-      hint: 'Finishes the welcome and opens the camera',
+      label: 'Learn the controls',
+      hint: 'Begins the spoken tutorial and safe practice',
+    },
+    skip: {
+      label: 'Use camera now',
+      hint: 'Skips the tutorial and opens the camera; any needed access is explained first',
+    },
+    again: { label: 'Listen again', hint: 'Reads the instructions on this page again' },
+    next: { label: 'Continue', hint: 'Moves to the next step' },
+    skipLessons: {
+      label: 'Set up access',
+      hint: 'Skips the remaining lessons and explains optional app access',
+    },
+    lesson: (step: number, total: number) => `Lesson ${step} of ${total}`,
+    lessons: [
+      {
+        title: 'Find the camera controls',
+        text: 'The live camera fills the screen. Tap its centre to hear the current status. The large Record button is at the bottom centre. Flip camera is at the top right. Mode is at the lower left. Subject is at the lower right; open Subject to reach Settings. With VoiceOver or TalkBack, move focus to a control and double tap to use it.',
+      },
+      {
+        title: 'Follow framing guidance',
+        text: 'Lumi currently keeps your face in frame. A tone on the left means move the phone left; a tone on the right means move it right. A higher tone means move the phone up. The tone gets quicker near the centre. A chime and one vibration confirm good framing. Two vibrations mean part of your face is cut off. Earphones make directional tones easier to follow.',
+      },
+      {
+        title: 'Choose guidance',
+        text: 'Mode cycles through Framing, Lighting, Feedback and Background. Lighting can guide you toward better light; Light scan appears in Lighting mode. Feedback is optional and starts off. Background can list common objects. Scene descriptions need an optional model download, with its size and your permission explained first. The scene button appears in Background mode.',
+      },
+      {
+        title: 'Record, review and share',
+        text: 'The Record button starts and stops filming. Supported phones can also use a volume key. Commands pause during filming by default, so use a button to stop. Cues use earphones only during filming by default. After filming, Review offers Play, Retake, Save and Share. Voice analysis is available after pausing playback when enabled in Settings. Share opens the phone share sheet; finish posting in the app you choose. Your phone may use Apple or Google services for live spoken commands; saved-video analysis stays local.',
+      },
+    ],
+    practice: {
+      title: 'Practice the controls',
+      intro:
+        'If you allowed camera access, practice shows a local preview. It does not use the microphone or save a video. Use the large button to practise starting and stopping. This changes only the practice state.',
+      volume:
+        'You can also press a volume key to practise. With a screen reader, its own volume shortcuts may take priority; the on-screen button always works.',
+      cameraNeeded:
+        'On iPhone, volume-key practice needs camera access and a running preview. You can use the screen button or continue.',
+      waitPreview:
+        'Waiting for the camera preview before enabling volume keys. You can use the screen button now.',
+      previewFailed:
+        'The camera preview is unavailable. Use the screen button to practise, then continue.',
+      noVolume:
+        'Volume-key capture is unavailable on this phone. Use the on-screen button; normal filming can also use spoken commands after permission.',
+      idle: 'Practice is stopped',
+      recording: 'Practice is running',
+      start: {
+        label: 'Try the record button',
+        hint: 'Starts the pretend recording without saving video or sound',
+      },
+      stop: { label: 'Try the stop button', hint: 'Stops the pretend recording' },
+      started: 'Practice started. No video is being recorded.',
+      stopped: 'Practice stopped. No video was saved.',
+      progress: (button: boolean, volume: boolean) =>
+        `${button ? 'On-screen control tried.' : 'On-screen control not yet tried.'} ${volume ? 'Volume control tried.' : 'Volume control not yet tried.'}`,
+    },
+    practiceLink: {
+      label: 'Practise the controls',
+      hint: 'Opens a camera preview if allowed, with no video or sound recording',
+    },
+    accessTitle: 'Set up access',
+    accessStep: (step: number, total: number) => `Access ${step} of ${total}`,
+    finish: {
+      label: 'Open camera',
+      hint: 'Completes setup and opens the camera with the access you allowed',
+    },
+    replayFinish: {
+      label: 'Finish tutorial',
+      hint: 'Returns to More settings without changing your preferences',
     },
   },
 
   camera: {
     screenAnnouncement: 'Camera. Record button at bottom centre.',
+    compactControls:
+      'For large text or a short screen, controls are in a scrollable list. The camera stays behind them. Use your screen reader scroll gesture, or swipe the list, to reach every control.',
+    debugFramingOnly:
+      'Framing cadence and boxes are available in Framing mode. This is not a measurement of preview frame rate.',
     preview: {
       label: 'Camera view',
       hint: 'Double tap to hear current status',
@@ -486,6 +561,52 @@ export const en = {
   },
 
   permissions: {
+    title: 'App access',
+    names: {
+      camera: 'Camera',
+      microphone: 'Microphone',
+      speech: 'Spoken commands',
+      photos: 'Add videos to Photos',
+    },
+    reasons: {
+      camera:
+        'Camera access lets Lumi show and record video and guide framing, lighting and background on your phone.',
+      microphone:
+        'Microphone access adds sound to your video and enables spoken commands. Without it, recordings are silent.',
+      speech:
+        'Speech access enables spoken commands and also needs Microphone access. Your phone may use Apple or Google services if local recognition is unavailable. Recorded-video voice analysis uses only local recognition.',
+      photos:
+        'Photos access lets Lumi automatically add finished videos to your photo library. Only permission to add is requested. Sharing the video saved in Lumi works without this access.',
+    },
+    status: {
+      allowed: 'Allowed',
+      off: 'Off',
+      unknown: 'Checking access',
+      unavailable: 'Access could not be checked',
+    },
+    item: (name: string, status: string) => `${name}: ${status}`,
+    detailHint: 'Explains this access and lets you request it or open phone settings',
+    allow: {
+      label: 'Allow access',
+      hint: 'Explains why this access is needed, then asks your phone for permission',
+    },
+    skip: {
+      label: 'Skip this request',
+      hint: 'Moves on without requesting or changing access. Existing phone permissions stay as they are.',
+    },
+    granted: 'Access allowed',
+    failed:
+      'Access could not be requested. You can continue and try again from Settings, More, App access.',
+    speechRequiresMic:
+      'Spoken commands need microphone access first. Allow Microphone or continue using buttons.',
+    optional:
+      'You can continue without allowing this. Buttons still work if spoken commands are off. Videos without microphone access have no sound. Photos access is optional for sharing a video saved in Lumi.',
+    manageIntro:
+      'Choose an access type to hear what it does. Your phone settings control the final permission. Lumi checks again when you return.',
+    deniedInfo:
+      'This access is off. You can request it here, or allow it in your phone settings. Continuing keeps your choice.',
+    settingsFailed:
+      'Phone settings could not be opened. Open them from your phone home screen and find Lumi.',
     photos: {
       explain:
         'Lumi automatically saves each finished video to your photos. Your phone will now ask for permission to add videos. If you decline, the video stays in Lumi and you can retry saving from Review.',
@@ -578,9 +699,19 @@ export const en = {
       hint: 'Standard or Detailed',
     },
     replayTutorial: { label: 'Replay tutorial', hint: 'Plays the welcome tutorial again' },
+    framing: {
+      label: 'Framing preferences',
+      hint: 'Changes automatic lens switching and the size of the safe zone',
+    },
+    safeZone: {
+      label: 'Safe zone',
+      value: (percent: number) => `${percent}% of the frame`,
+      help: 'A smaller safe zone leaves more room around your face. Choose between 60% and 90%. This does not change the saved video.',
+    },
     privacy: { label: 'Privacy policy', hint: 'Opens the privacy policy in your browser' },
     about: { label: 'About Lumi', hint: 'Version and licences' },
     version: (v: string) => `Version ${v}`,
+    versionHint: 'App version. Repeated activation opens hidden diagnostics for testing.',
     contact: (email: string) => `Contact: ${email}`,
     aboutBody:
       'Lumi analyses video on your phone. Video and images never leave your phone. To understand voice commands, your phone may use Apple or Google speech recognition. Posture uses Google MoveNet Lightning, licensed under Apache 2.0. The model is bundled and runs on your phone. Voice measurements use saved audio locally; speaking pace needs on-device recognition. Background detection uses TensorFlow COCO SSD MobileNet under Apache 2.0. Standard descriptions use SmolVLM2 under Apache 2.0. Detailed uses a community GGUF conversion and quantization of Google Gemma 3n by shreyashmakadia. Gemma is provided under and subject to the Gemma Terms of Use found at https://ai.google.dev/gemma/terms, including its prohibited use policy. Model downloads are optional. Google does not endorse Lumi.',
