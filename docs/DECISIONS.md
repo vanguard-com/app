@@ -451,9 +451,11 @@ their timers on completion/cancellation. An early terminal event cannot revive r
 when its start promise subsequently resolves.
 
 Confirmed recordings still stop and retain the local clip. Review notification waits for an
-active Camera; unmounted Camera callbacks cannot navigate. Automatic Photos permission/save
-work has an abort signal so departure cannot open a new dialog or initiate a late save; the
-local copy remains and Review's Save retries explicitly. An OS dialog already displayed cannot
-be withdrawn. Real camera/microphone cleanup, hardware interruptions and audio routing still
+active Camera; unmounted Camera callbacks cannot navigate. Automatic Photos checks/explanations
+have an abort signal so departure cannot open a new dialog. A cancelled attempt retains the
+local copy and Review's Save retries explicitly; cancellation is not reported as a permission
+denial. An OS dialog already displayed cannot be withdrawn and may deactivate the app: its
+eventual grant still completes that requested Photos save. Real camera/microphone cleanup,
+hardware interruptions and audio routing still
 require the TESTING.md phone checklist. No dependency, native module, network service, store
 credential or new feature phase is introduced.

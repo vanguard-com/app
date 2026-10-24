@@ -269,7 +269,9 @@ phone; cloud tests reproduce callback timing but cannot establish native microph
    active again. Playback contains only the intended clip and its duration excludes save time.
 4. Repeat with Photos access not yet granted, and leave during the spoken save explanation.
    Expected: no new Photos dialog launches after departure. Review retains the app copy; use
-   Save explicitly to retry. An OS dialog already on screen remains controlled by the OS.
+   Save explicitly to retry. An OS dialog already on screen remains controlled by the OS;
+   granting that dialog must still complete the requested save, including after its temporary
+   app deactivation. An abandoned explanation must not be reported as permission denied.
 5. Navigate away during startup and during a confirmed recording. Expected: unfinished startup
    is cancelled; an existing recording is stopped/preserved. An unmounted Camera cannot later
    push Review or speak a false start confirmation over another screen.

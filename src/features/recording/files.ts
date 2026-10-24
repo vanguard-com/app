@@ -49,7 +49,8 @@ export async function saveToPhotos(
       ))
     )
       return 'denied';
-    if (signal?.aborted) return 'denied';
+    // Permission checks/explanations honor cancellation. An already displayed native dialog
+    // can deactivate the app; honor its eventual grant and finish that requested save.
     await MediaLibrary.saveToLibraryAsync(uri);
     return 'saved';
   } catch (error) {
