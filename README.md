@@ -7,16 +7,16 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 
 ## Status
 
-| Phase | Deliverable                                                   | State                                                     |
-| ----- | ------------------------------------------------------------- | --------------------------------------------------------- |
-| 0     | Project setup, theme, navigation, CI, docs                    | Done, needs phone check                                   |
-| 1     | Cue engine, camera, recording, save                           | Done, needs phone check                                   |
-| 2     | Spatial sensing, subject setup, lens switching                | Implemented (face-first), needs phone check               |
-| 3     | Lighting check, scan mode                                     | Implemented, needs phone check                            |
-| 4     | Live feedback                                                 | Implemented, native builds passed; phone checks pending   |
-| 5     | Background recognition, scene description                     | Implemented; phone validation pending                     |
-| 6     | Review, sharing, voice commands                               | Implemented; native builds passed; phone checks pending   |
-| 7     | Onboarding, settings polish, accessibility audit, performance | Implemented; full reader/phone performance checks pending |
+| Phase | Deliverable                                                   | State                                                              |
+| ----- | ------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 0     | Project setup, theme, navigation, CI, docs                    | Done, needs phone check                                            |
+| 1     | Cue engine, camera, recording, save                           | Done, needs phone check                                            |
+| 2     | Spatial sensing, subject setup, lens switching                | Implemented (face-first), needs phone check                        |
+| 3     | Lighting check, scan mode                                     | Implemented, needs phone check                                     |
+| 4     | Live feedback                                                 | Implemented, native builds passed; phone checks pending            |
+| 5     | Background recognition, scene description                     | Implemented; phone validation pending                              |
+| 6     | Review, sharing, voice commands                               | Implemented; native builds passed; phone checks pending            |
+| 7     | Onboarding, settings polish, accessibility audit, performance | Implemented; full reader/phone performance checks pending          |
 | 8     | Store readiness                                               | Prepared; signed builds, store assets and phone acceptance pending |
 
 Phase 6 adds Review's Play, Retake, Save and Share actions. Play includes optional recorded-voice
@@ -31,6 +31,10 @@ See [Phase 7 acceptance](docs/PHASE_7.md) and the [accessibility audit](docs/ACC
 Phase 8 prepares release profiles, native release checks, listing and privacy disclosures.
 See [release instructions](docs/RELEASE.md), [Phase 8 gates](docs/PHASE_8.md) and the
 [privacy worksheet](docs/STORE_PRIVACY.md). No store submission has been made.
+
+Phase 8 is merged and its Android APK/AAB and unsigned iOS Release builds passed.
+See [release candidate verification](docs/RELEASE_CANDIDATE.md) for the inspected artifacts,
+SDK privacy evidence, phone installation steps and remaining signed-store requirements.
 
 ## Requirements
 

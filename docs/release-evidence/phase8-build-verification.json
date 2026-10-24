@@ -1,0 +1,57 @@
+{
+  "verified_on": "2026-10-24",
+  "repository": "vanguard-com/app",
+  "main_commit": "e5874c4ec284abde87705666c2d183acee28826c",
+  "source_tree": "6573d8542bbd3af975660067ccb82e18739319b8",
+  "phase8_pr": {
+    "number": 10,
+    "merged_at": "2026-10-24T11:19:16+08:00"
+  },
+  "android": {
+    "run_id": 40057818844,
+    "conclusion": "success",
+    "artifact_id_apk": 12546632611,
+    "artifact_id_test_key_aab": 12547186180,
+    "apk": {
+      "name": "lumi-e5874c4.apk",
+      "bytes": 217199140,
+      "sha256": "a3458cf870fe2b4c2527394ded363e714ed3ecd8d82589e1a15d08cd45f925a0",
+      "packaged_abis": ["arm64-v8a"],
+      "elf_libraries_checked": 51,
+      "minimum_load_segment_alignment_bytes": 16384,
+      "uncompressed_library_zip_alignment_bytes": 16384
+    },
+    "ci_checks": ["merged release manifest", "APK and AAB ELF alignment", "APK zipalign"],
+    "signing": "CI template test key; not the Play upload identity",
+    "device_tested": false
+  },
+  "ios": {
+    "run_id": 40055634172,
+    "commit": "93148f3e4e13fb5710a523a78e364299198ec3da",
+    "same_source_tree_as_main": true,
+    "conclusion": "success",
+    "artifact_id": 12545174431,
+    "bundle_identifier": "com.vanguard.lumi",
+    "version": "1.0.0",
+    "build_number": "1",
+    "minimum_os": "16.4",
+    "sdk": "iphoneos26.5",
+    "xcode": "2660",
+    "privacy_manifest_count": 18,
+    "privacy_manifest_snapshot": "phase8-ios-privacy-manifests.json",
+    "source_snapshot_sha256": "6b2b59c96cbf993ca4cef6c79f53d22e317712c66b6612b9e03c42944c4e38a5",
+    "signing": "unsigned Release archive; no IPA/TestFlight validation",
+    "device_tested": false
+  },
+  "public_links": {
+    "privacy": {
+      "url": "https://github.com/vanguard-com/app/blob/main/docs/PRIVACY.md",
+      "anonymous_http_status": 200
+    },
+    "support": {
+      "url": "https://github.com/vanguard-com/app/blob/main/docs/SUPPORT.md",
+      "anonymous_http_status": 200
+    }
+  },
+  "release_acceptance": "pending signed builds, physical testing, screenshots and final console declarations"
+}

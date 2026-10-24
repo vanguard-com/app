@@ -33,6 +33,23 @@ store forms still need the versioned SDK report/provider review described below.
 
 ## Apple App Privacy
 
+### Observed Phase 8 archive evidence
+
+The successful unsigned Release archive from [run 40055634172](https://github.com/vanguard-com/app/actions/runs/40055634172)
+contains 18 privacy manifests. The [exported snapshot](release-evidence/phase8-ios-privacy-manifests.json)
+includes `GoogleDataTransport_Privacy.bundle/PrivacyInfo.xcprivacy`, declaring
+`NSPrivacyCollectedDataTypeOtherDiagnosticData` for `NSPrivacyCollectedDataTypePurposeAnalytics`,
+with both linked-to-user and tracking flags false. Its resolved pod version is GoogleDataTransport
+10.1.1, through MLKitCommon 14.0.0 and GoogleMLKit/FaceDetection 9.0.0.
+
+This is concrete evidence of a shipped SDK collection declaration. The empty collected-data
+array in Lumi's own manifest does not establish “Data Not Collected” for the whole app.
+This single SDK entry also does not settle all ML Kit, speech or model-host data handling.
+The broader provider disclosure inventory below still applies. Verify the final signed artifact
+and live console form before submitting. See [release verification](RELEASE_CANDIDATE.md).
+
+### Form worksheet
+
 Apple defines collection as transmitting off device with access beyond servicing the request
 in real time. The developer must include relevant partner practices, not only its own servers.
 
