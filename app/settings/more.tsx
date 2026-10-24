@@ -13,6 +13,7 @@ export default function MoreSettings() {
       <ScreenHeader title={t.groups.more.label} />
       <AccessibleButton
         navigation
+        icon="cube-outline"
         label={strings.background.models.label}
         hint={strings.background.models.hint}
         onPress={() => router.push('/settings/models')}
@@ -20,6 +21,7 @@ export default function MoreSettings() {
       />
       <AccessibleButton
         navigation
+        icon="school-outline"
         label={t.replayTutorial.label}
         hint={t.replayTutorial.hint}
         onPress={() => router.push({ pathname: '/welcome', params: { replay: '1' } })}
@@ -28,6 +30,7 @@ export default function MoreSettings() {
       />
       <AccessibleButton
         navigation
+        icon="grid-outline"
         label={strings.permissions.title}
         hint={strings.permissions.detailHint}
         onPress={() => router.push('/settings/permissions')}
@@ -35,6 +38,7 @@ export default function MoreSettings() {
       />
       <AccessibleButton
         navigation
+        icon="information-circle-outline"
         label={strings.background.information.label}
         hint={strings.background.information.hint}
         onPress={() => router.push('/settings/information')}

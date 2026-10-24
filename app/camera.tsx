@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   AppState,
   Linking,
   Pressable,
@@ -18,7 +19,7 @@ import { useBackgroundCamera } from '@/features/background/useBackgroundCamera';
 import { useSceneDescription } from '@/features/background/useSceneDescription';
 import { useModels, refreshModels, deleteModel } from '@/features/background/models';
 import { applyAudioSession } from '@/audio/audioSession';
-import { AccessibleButton, StatusBorder } from '@/components';
+import { AccessibleButton, StatusBorder, usePressMotion, type IconName } from '@/components';
 import { cues } from '@/cues';
 import { subjectLabel } from '@/features/framing/subject';
 import { useFeedbackCamera } from '@/features/feedback/useFeedbackCamera';
@@ -50,6 +51,13 @@ import { formatClock, splitDuration } from '@/utils/time';
 import { isHardwareButtonSupported } from '../modules/lumi-hardware-buttons';
 
 const t = strings.camera;
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const MODE_ICONS: Record<keyof typeof t.modes, IconName> = {
+  framing: 'scan-outline',
+  lighting: 'sunny-outline',
+  feedback: 'pulse-outline',
+  background: 'image-outline',
+};
 
 export default function CameraScreen() {
   const { colors, typography, spacing, layout } = useTheme('dark');
@@ -85,6 +93,8 @@ export default function CameraScreen() {
   const [speechAllowed, setSpeechAllowed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [recordFocused, setRecordFocused] = useState(false);
+  const [recordPressed, setRecordPressed] = useState(false);
+  const recordMotion = usePressMotion(phase !== 'starting' && phase !== 'stopping');
   const isRecording = phase === 'recording';
   const volumeButton = isHardwareButtonSupported();
   const debugOverlay = useSettings((s) => s.debugOverlay);
@@ -621,7 +631,7 @@ export default function CameraScreen() {
       scheme="dark"
       label={t.flip.label}
       hint={t.flip.hint}
-      icon="⟲"
+      icon="camera-reverse-outline"
       text=""
       onPress={flip}
       disabled={phase !== 'idle'}
@@ -666,6 +676,7 @@ export default function CameraScreen() {
   const permissionControl = (
     <AccessibleButton
       scheme="dark"
+      icon="settings-outline"
       label={strings.permissions.openSettings.label}
       hint={strings.permissions.openSettings.hint}
       onPress={() => {
@@ -685,6 +696,7 @@ export default function CameraScreen() {
     <>
       <AccessibleButton
         scheme="dark"
+        icon={MODE_ICONS[mode]}
         label={t.mode.label(t.modes[mode])}
         hint={t.mode.hint}
         text={t.modes[mode]}
@@ -705,6 +717,7 @@ export default function CameraScreen() {
       {mode === 'background' ? (
         <AccessibleButton
           scheme="dark"
+          icon={scene.busy ? 'close-outline' : 'image-outline'}
           label={scene.busy ? strings.background.cancel.label : strings.background.describe.label}
           hint={scene.busy ? strings.background.cancel.hint : strings.background.describe.hint}
           disabled={phase !== 'idle'}
@@ -715,6 +728,7 @@ export default function CameraScreen() {
       {mode === 'lighting' ? (
         <AccessibleButton
           scheme="dark"
+          icon={scan.running ? 'close-outline' : 'sunny-outline'}
           label={scan.running ? strings.lighting.cancelScan.label : strings.lighting.scan.label}
           hint={scan.running ? strings.lighting.cancelScan.hint : strings.lighting.scan.hint}
           disabled={phase !== 'idle'}
@@ -725,7 +739,7 @@ export default function CameraScreen() {
     </>
   );
   const recordControl = (
-    <Pressable
+    <AnimatedPressable
       accessible
       accessibilityRole="button"
       accessibilityLabel={isRecording ? t.record.stopLabel : t.record.idleLabel}
@@ -739,9 +753,17 @@ export default function CameraScreen() {
       focusable={phase !== 'starting' && phase !== 'stopping'}
       onFocus={() => setRecordFocused(true)}
       onBlur={() => setRecordFocused(false)}
+      onPressIn={() => {
+        setRecordPressed(true);
+        recordMotion.onPressIn();
+      }}
+      onPressOut={() => {
+        setRecordPressed(false);
+        recordMotion.onPressOut();
+      }}
       onPress={toggleRecording}
       testID="camera-record"
-      style={({ pressed }) => [
+      style={[
         styles.center,
         {
           width: layout.recordButtonSize,
@@ -751,9 +773,10 @@ export default function CameraScreen() {
           borderWidth: layout.focusRingWidth,
           borderColor: recordFocused
             ? colors.primaryButton.text
-            : pressed
+            : recordPressed
               ? colors.textPrimary
               : colors.primaryButton.border,
+          transform: recordMotion.transform,
         },
       ]}
     >
@@ -766,11 +789,13 @@ export default function CameraScreen() {
           backgroundColor: colors.primaryButton.text,
         }}
       />
-    </Pressable>
+    </AnimatedPressable>
   );
   const subjectControl = (
     <AccessibleButton
       scheme="dark"
+      stacked
+      icon="person-outline"
       label={t.subject.label(subjectLabel(subject))}
       hint={t.subject.hint}
       text={subjectLabel(subject)}

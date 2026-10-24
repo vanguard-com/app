@@ -10,6 +10,8 @@ export default function InformationScreen() {
     <Screen>
       <ScreenHeader title={strings.background.information.label} />
       <AccessibleButton
+        navigation
+        icon="document-text-outline"
         label={t.privacy.label}
         hint={t.privacy.hint}
         role="link"
@@ -26,6 +28,7 @@ export default function InformationScreen() {
       />
       <AccessibleButton
         navigation
+        icon="information-circle-outline"
         label={t.about.label}
         hint={t.about.hint}
         onPress={() => router.push('/settings/about')}

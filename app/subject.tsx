@@ -1,7 +1,7 @@
 import { Text } from 'react-native';
 import { router } from 'expo-router';
 
-import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { AccessibleButton, InfoCard, Screen, ScreenHeader } from '@/components';
 import { subjectLabel } from '@/features/framing/subject';
 import { strings } from '@/i18n';
 import { useSession, type SubjectTarget } from '@/store/sessionStore';
@@ -37,6 +37,7 @@ export default function SubjectScreen() {
       {OPTIONS.map((option) => (
         <AccessibleButton
           key={option.kind}
+          icon="person-outline"
           label={subjectLabel(option)}
           hint={t.pick.hint}
           selected={subject.kind === option.kind}
@@ -45,13 +46,13 @@ export default function SubjectScreen() {
           testID={`subject-${option.kind}`}
         />
       ))}
-      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
-        {t.faceOnly}
-      </Text>
+      <InfoCard icon="information-circle-outline">{t.faceOnly}</InfoCard>
       <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
         {t.guidanceHelp}
       </Text>
       <AccessibleButton
+        navigation
+        icon="settings-outline"
         label={strings.camera.settings.label}
         hint={strings.camera.settings.hint}
         onPress={() => router.push('/settings')}

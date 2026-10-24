@@ -15,6 +15,7 @@ export default function DownloadSettings() {
         {t.downloadPolicy}
       </Text>
       <ToggleRow
+        icon="cellular-outline"
         label={t.mobileData}
         value={allowed}
         onChange={(value) => update({ allowMobileDataDownloads: value })}

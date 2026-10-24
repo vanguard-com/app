@@ -14,7 +14,7 @@ import { useTheme } from '@/theme';
 
 export default function BenchmarkScreen() {
   const t = strings.background,
-    { colors, typography } = useTheme();
+    { colors, typography, spacing } = useTheme();
   const unlocked = useSettings((s) => s.debugOverlay),
     records = useBenchmarks((s) => s.records);
   const [running, setRunning] = useState(false),
@@ -108,7 +108,7 @@ export default function BenchmarkScreen() {
     <Screen>
       <ScreenHeader title={t.benchmark.label} />
       <Text
-        style={[typography.body, { color: colors.textPrimary }]}
+        style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}
         accessibilityLiveRegion="polite"
       >
         {status}
@@ -116,11 +116,14 @@ export default function BenchmarkScreen() {
       {unlocked ? (
         <>
           <AccessibleButton
+            variant={running ? 'secondary' : 'primary'}
+            icon={running ? 'close-outline' : 'images-outline'}
             label={running ? t.cancel.label : t.benchmark.choose}
             hint={running ? t.cancel.hint : t.benchmark.chooseHint}
             onPress={running ? cancel : () => void run()}
           />
           <AccessibleButton
+            icon="trash-outline"
             label={t.benchmark.clear}
             hint={t.benchmark.clearHint}
             disabled={running}

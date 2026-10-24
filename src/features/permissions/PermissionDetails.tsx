@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Linking, Text } from 'react-native';
 import { useIsFocused } from 'expo-router';
-import { AccessibleButton } from '@/components';
+import { AccessibleButton, InfoCard } from '@/components';
 import { cues } from '@/cues';
 import { useNarration } from '@/features/onboarding/useNarration';
 import { useAppActive } from '@/hooks/useAppActive';
@@ -130,20 +130,30 @@ export function PermissionDetails({
       <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
         {explanation}
       </Text>
-      <Text
-        style={[typography.label, { color: colors.textPrimary, marginBottom: spacing.md }]}
-        accessibilityLiveRegion="polite"
-      >
-        {failed
-          ? t.status.unavailable
-          : !status
-            ? t.status.unknown
-            : status.granted
-              ? t.status.allowed
-              : t.deniedInfo}
-      </Text>
+      <InfoCard
+        live
+        icon={
+          failed
+            ? 'alert-circle-outline'
+            : !status
+              ? 'help-circle-outline'
+              : status.granted
+                ? 'checkmark-circle'
+                : 'information-circle-outline'
+        }
+        title={
+          failed
+            ? t.status.unavailable
+            : !status
+              ? t.status.unknown
+              : status.granted
+                ? t.status.allowed
+                : t.deniedInfo
+        }
+      />
       {!status?.granted ? (
         <AccessibleButton
+          icon="shield-checkmark-outline"
           label={t.allow.label}
           hint={t.allow.hint}
           onPress={() => void request()}
@@ -154,6 +164,7 @@ export function PermissionDetails({
       {onContinue ? (
         <AccessibleButton
           variant="primary"
+          navigation
           label={next.label}
           hint={next.hint}
           onPress={() => {
@@ -165,6 +176,7 @@ export function PermissionDetails({
         />
       ) : null}
       <AccessibleButton
+        icon="settings-outline"
         label={t.openSettings.label}
         hint={t.openSettings.hint}
         onPress={openSettings}
@@ -172,6 +184,7 @@ export function PermissionDetails({
         testID="permission-settings"
       />
       <AccessibleButton
+        icon="volume-high-outline"
         label={strings.onboarding.again.label}
         hint={strings.onboarding.again.hint}
         onPress={narration.replay}

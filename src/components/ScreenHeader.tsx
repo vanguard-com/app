@@ -30,22 +30,12 @@ export function ScreenHeader({ title, hideBack, onBack, announce = true }: Scree
   };
 
   return (
-    <View
-      style={[
-        styles.row,
-        {
-          marginBottom: spacing.lg,
-          paddingBottom: spacing.md,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: colors.divider,
-        },
-      ]}
-    >
+    <View style={[styles.row, { marginBottom: spacing.lg }]}>
       {hideBack ? null : (
         <AccessibleButton
           label={strings.common.back.label}
           hint={strings.common.back.hint}
-          icon="‹"
+          icon="chevron-back"
           text=""
           onPress={goBack}
           style={{ marginBottom: 0 }}

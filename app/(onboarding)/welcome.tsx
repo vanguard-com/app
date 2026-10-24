@@ -20,18 +20,21 @@ export default function Welcome() {
       </Text>
       <AccessibleButton
         variant="primary"
+        icon="school-outline"
         label={t.start.label}
         hint={t.start.hint}
         onPress={() => nextOnboarding('/tutorial', replay === '1')}
         testID="welcome-start"
       />
       <AccessibleButton
+        icon="play-outline"
         label={t.again.label}
         hint={t.again.hint}
         onPress={narration.replay}
         testID="welcome-repeat"
       />
       <AccessibleButton
+        icon="camera-outline"
         label={skip.label}
         hint={skip.hint}
         onPress={() => finishOnboarding(replay === '1')}

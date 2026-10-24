@@ -19,6 +19,7 @@ export default function FeedbackSettings() {
         {strings.feedback.voiceFallback}
       </Text>
       <ToggleRow
+        icon="pulse-outline"
         label={t.liveFeedback.label}
         value={liveFeedback}
         onChange={(value) => update({ liveFeedback: value })}
@@ -26,6 +27,7 @@ export default function FeedbackSettings() {
       />
       <AccessibleButton
         navigation
+        icon="options-outline"
         label={t.feedbackTypes.label}
         hint={t.feedbackTypes.hint}
         onPress={() => router.push('/settings/feedback-types')}

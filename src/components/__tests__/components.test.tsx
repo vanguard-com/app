@@ -39,10 +39,20 @@ describe('AccessibleButton', () => {
   });
 
   it('hides the decorative icon from screen readers', () => {
-    render(<AccessibleButton label="Settings" hint="h" icon="⚙" text="" onPress={() => {}} />);
+    render(
+      <AccessibleButton
+        label="Settings"
+        hint="h"
+        icon="settings-outline"
+        text=""
+        onPress={() => {}}
+      />,
+    );
     expect(screen.getByRole('button', { name: 'Settings' })).toBeTruthy();
-    expect(screen.queryByText('⚙')).toBeNull();
-    expect(screen.getByText('⚙', { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByTestId('icon-settings-outline')).toBeNull();
+    expect(
+      screen.getByTestId('icon-settings-outline', { includeHiddenElements: true }),
+    ).toBeTruthy();
   });
 });
 

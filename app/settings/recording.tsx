@@ -23,6 +23,7 @@ export default function RecordingSettings() {
     <Screen>
       <ScreenHeader title={t.groups.camera.label} />
       <AdjustableRow
+        icon="headset-outline"
         label={t.recordingCues.label}
         valueText={t.recordingCues.values[recordingCues]}
         onIncrement={() => update({ recordingCues: nextInCycle(CUE_MODES, recordingCues, 1) })}
@@ -31,12 +32,14 @@ export default function RecordingSettings() {
       />
       <AccessibleButton
         navigation
+        icon="scan-outline"
         label={t.framing.label}
         hint={t.framing.hint}
         onPress={() => router.push('/settings/framing')}
         testID="setting-framing"
       />
       <AdjustableRow
+        icon="timer-outline"
         label={t.elapsedTime.label}
         valueText={t.elapsedTime.values[INTERVAL_KEY[interval]]}
         onIncrement={() => update({ elapsedTimeInterval: nextInCycle(INTERVALS, interval, 1) })}
@@ -44,6 +47,7 @@ export default function RecordingSettings() {
         testID="setting-elapsed-time"
       />
       <ToggleRow
+        icon="mic-outline"
         label={t.voiceCommandsWhileRecording.label}
         value={voiceWhileRecording}
         onChange={(value) => update({ voiceCommandsWhileRecording: value })}
