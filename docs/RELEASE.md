@@ -17,7 +17,10 @@ building the wrong app. EAS profiles explicitly set the same environment variabl
 | preview     | No launcher/menu or development discovery  | Internal standalone APK | Internal Release, registered-device signing |
 | production  | Same release hardening as preview          | Store AAB               | Store Release archive/IPA                   |
 
-All keep `com.vanguard.lumi`, version 1.0.0, iOS 16.4+ and Android API 29+. Preview and production
+All keep `com.vanguard.lumi`, version 1.0.0, iOS 16.4+ and Android API 29+. Development builds
+64-bit ARM plus x86_64 for emulators. Preview/production explicitly build arm64-v8a, matching
+the supported phones and CI; unsupported 32-bit ABIs are excluded because llama.rn is 64-bit.
+Preview and production
 exclude `expo-dev-client`, `expo-dev-launcher` and `expo-dev-menu` from native module linking.
 Their interfaces may remain as runtime dependencies; the actual launcher/menu are excluded.
 A config plugin also removes development URL schemes and iOS local-network/Bonjour keys,
@@ -66,8 +69,8 @@ upload the CI AAB to Play or promote that key to a production credential.
 The Android workflow builds `assembleRelease bundleRelease` with the production profile,
 checks the **merged** manifest, arm64 ELF 16 KB segment alignment and APK zip alignment.
 It publishes APK and **test-key AAB** artifacts for 14 days. Main additionally refreshes the
-existing Android test pre-release. These checks are arm64-only; the EAS signed artifact's
-actual architectures must pass the same alignment/console checks.
+existing Android test pre-release. CI and EAS production both explicitly build arm64. Repeat the same alignment/console
+checks on the eventual signed artifact.
 
 The iOS workflow uses the production profile and `xcodebuild archive -configuration Release`
 for generic iOS devices, signing disabled. It checks the built app's Info.plist, privacy API

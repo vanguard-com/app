@@ -8,7 +8,14 @@ module.exports = ({ config }) => {
   return {
     ...config,
     plugins: [
-      ...(config.plugins ?? []),
+      ...(config.plugins ?? []).map((plugin) => {
+        if (!release || !Array.isArray(plugin) || plugin[0] !== 'expo-build-properties')
+          return plugin;
+        return [
+          plugin[0],
+          { ...plugin[1], android: { ...plugin[1].android, buildArchs: ['arm64-v8a'] } },
+        ];
+      }),
       ...(release ? ['./plugins/withReleaseBuild.cjs'] : ['expo-dev-client']),
     ],
     android: {

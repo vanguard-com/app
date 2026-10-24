@@ -433,3 +433,7 @@ sharing, system Photos/cloud sync and iOS backup from Lumi's local camera analys
 Owner URL decision, 24 October 2026: use the existing public GitHub privacy policy until the
 website is ready. Store metadata also points at the new GitHub support page once merged.
 Verify anonymous access after merge; no website deployment or extra hosting is required now.
+
+Release profiles explicitly build Android arm64-v8a, matching CI and supported phones;
+development also allows x86_64 emulators. The template's 32-bit defaults are removed because
+llama.rn itself filters those ABIs and cannot provide a working scene runtime for them.

@@ -50,9 +50,19 @@ for (const profile of ['development', 'preview', 'production']) {
   assert.equal(manifest.application[0].$['android:allowBackup'], 'false');
   const schemes = (plist.CFBundleURLTypes ?? []).flatMap((entry) => entry.CFBundleURLSchemes ?? []);
   if (profile === 'development') {
+    assert(
+      native.android.gradleProperties.some(
+        (p) => p.key === 'reactNativeArchitectures' && p.value === 'arm64-v8a,x86_64',
+      ),
+    );
     assert(schemes.includes('exp+lumi'));
     assert(plist.NSLocalNetworkUsageDescription);
   } else {
+    assert(
+      native.android.gradleProperties.some(
+        (p) => p.key === 'reactNativeArchitectures' && p.value === 'arm64-v8a',
+      ),
+    );
     assert(!schemes.some((scheme) => scheme.startsWith('exp+')));
     assert(!plist.NSLocalNetworkUsageDescription);
     assert(!plist.NSBonjourServices);

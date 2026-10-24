@@ -51,7 +51,7 @@ jobs:
       # arm64 only keeps the build fast; every phone Lumi supports is 64 bit ARM.
       - name: Build APK and AAB
         working-directory: android
-        run: ./gradlew assembleRelease bundleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease bundleRelease --no-daemon
 
       - name: Check release permissions and 16 KB support
         run: |
