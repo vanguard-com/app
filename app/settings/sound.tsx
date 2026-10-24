@@ -25,6 +25,7 @@ export default function SoundSettings() {
     <Screen>
       <ScreenHeader title={t.groups.sound.label} />
       <AdjustableRow
+        icon="chatbubble-ellipses-outline"
         label={t.verbosity.label}
         valueText={t.verbosity.values[verbosity]}
         onIncrement={() => update({ verbosity: nextInCycle(VERBOSITY, verbosity, 1) })}
@@ -32,6 +33,7 @@ export default function SoundSettings() {
         testID="setting-verbosity"
       />
       <AdjustableRow
+        icon="musical-notes-outline"
         label={t.cueType.label}
         valueText={t.cueType.values[cueType]}
         onIncrement={() => update({ cueType: nextInCycle(CUE_TYPES, cueType, 1) })}
@@ -39,6 +41,7 @@ export default function SoundSettings() {
         testID="setting-cue-type"
       />
       <AdjustableRow
+        icon="speedometer-outline"
         label={t.voiceRate.label}
         valueText={t.voiceRate.value(Math.round(voiceRate * 100))}
         onIncrement={() => update({ voiceRate: stepOrWrap(voiceRate, VOICE_RATE_RANGE, 1) })}
@@ -46,6 +49,7 @@ export default function SoundSettings() {
         testID="setting-voice-rate"
       />
       <AdjustableRow
+        icon="volume-high-outline"
         label={t.cueVolume.label}
         valueText={t.cueVolume.value(Math.round(cueVolume * 100))}
         onIncrement={() => update({ cueVolume: stepOrWrap(cueVolume, CUE_VOLUME_RANGE, 1) })}

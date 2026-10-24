@@ -15,6 +15,7 @@ export default function ModelsScreen() {
         <AccessibleButton
           navigation
           key={model}
+          icon="cube-outline"
           label={t.modelNames[model]}
           hint={t.modelHint}
           onPress={() => router.push({ pathname: '/settings/scene-model', params: { model } })}
@@ -22,6 +23,7 @@ export default function ModelsScreen() {
       ))}
       <AccessibleButton
         navigation
+        icon="download-outline"
         label={t.downloads.label}
         hint={t.downloads.hint}
         onPress={() => router.push('/settings/downloads')}

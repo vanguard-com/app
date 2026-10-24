@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { VideoView } from 'expo-video';
 
-import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { AccessibleButton, EmptyState, Screen, ScreenHeader } from '@/components';
 import { cues } from '@/cues';
 import { useRecordedVoice } from '@/features/feedback/useRecordedVoice';
 import { hasMicrophonePermission, hasSpeechPermission } from '@/features/permissions/permissions';
@@ -144,6 +144,7 @@ export default function PlaybackScreen() {
           </Text>
           <AccessibleButton
             variant="primary"
+            icon={playback.playing ? 'pause' : 'play'}
             label={playback.playing ? t.pause.label : t.play.label}
             hint={playback.playing ? t.pause.hint : t.play.hint}
             onPress={() => (playback.playing ? playback.pause() : playback.play())}
@@ -151,6 +152,7 @@ export default function PlaybackScreen() {
             testID="playback-toggle"
           />
           <AccessibleButton
+            icon="reload"
             label={t.restart.label}
             hint={t.restart.hint}
             onPress={() => playback.play(true)}
@@ -159,6 +161,7 @@ export default function PlaybackScreen() {
           />
           {recording.hasAudio && feedbackEnabled ? (
             <AccessibleButton
+              icon={voice.busy ? 'close-outline' : 'mic-outline'}
               label={
                 voice.busy
                   ? strings.feedback.cancelVoice.label
@@ -187,7 +190,7 @@ export default function PlaybackScreen() {
           ) : null}
         </>
       ) : (
-        <Text style={[typography.body, { color: colors.textPrimary }]}>{strings.review.empty}</Text>
+        <EmptyState icon="play-circle" title={strings.review.empty} />
       )}
     </Screen>
   );

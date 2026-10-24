@@ -1,15 +1,15 @@
 import { router, type Href } from 'expo-router';
 
-import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { AccessibleButton, Screen, ScreenHeader, type IconName } from '@/components';
 import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 // Max 4 controls per screen, so settings are split into 4 groups.
-const GROUPS: { key: keyof typeof strings.settings.groups; href: Href; icon: string }[] = [
-  { key: 'sound', href: '/settings/sound', icon: '♫' },
-  { key: 'feedback', href: '/settings/feedback', icon: '◉' },
-  { key: 'camera', href: '/settings/recording', icon: '▣' },
-  { key: 'more', href: '/settings/more', icon: '•••' },
+const GROUPS: { key: keyof typeof strings.settings.groups; href: Href; icon: IconName }[] = [
+  { key: 'sound', href: '/settings/sound', icon: 'volume-high-outline' },
+  { key: 'feedback', href: '/settings/feedback', icon: 'pulse-outline' },
+  { key: 'camera', href: '/settings/recording', icon: 'camera-outline' },
+  { key: 'more', href: '/settings/more', icon: 'settings-outline' },
 ];
 
 export default function SettingsHome() {

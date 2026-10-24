@@ -33,6 +33,7 @@ export default function Tutorial() {
         {lesson.text}
       </Text>
       <AccessibleButton
+        icon="play-outline"
         label={t.again.label}
         hint={t.again.hint}
         onPress={narration.replay}
@@ -40,6 +41,7 @@ export default function Tutorial() {
       />
       <AccessibleButton
         variant="primary"
+        navigation
         label={step === t.lessons.length - 1 ? t.skipLessons.label : t.next.label}
         hint={t.next.hint}
         onPress={() => (step === t.lessons.length - 1 ? practice() : setStep(step + 1))}
@@ -47,6 +49,7 @@ export default function Tutorial() {
       />
       {step < t.lessons.length - 1 ? (
         <AccessibleButton
+          icon="settings-outline"
           label={t.skipLessons.label}
           hint={t.skipLessons.hint}
           onPress={practice}

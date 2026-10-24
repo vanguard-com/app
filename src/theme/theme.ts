@@ -23,6 +23,10 @@ export interface Palette {
   primaryButton: { background: string; text: string; border: string };
   /** Secondary button (everything else). */
   secondaryButton: { background: string; text: string; border: string };
+  /** Soft drop shadow under cards. Decorative only, never the sole boundary. */
+  shadow: string;
+  /** Switch knob, drawn on the accent track (on) or the off track. */
+  knob: string;
 }
 
 // Dark surfaces are deliberately deeper than the reference's blue-gray cards.
@@ -40,11 +44,14 @@ export const darkPalette: Palette = {
   problem: '#FF808B',
   primaryButton: { background: '#1747C9', text: '#FFFFFF', border: '#568BFF' },
   secondaryButton: { background: '#101C2E', text: '#F7FAFF', border: '#647995' },
+  shadow: '#000000',
+  knob: '#FFFFFF',
 };
 
+// Light mode: a faint blue page with white cards, so every control reads as a raised surface.
 export const lightPalette: Palette = {
-  background: '#FFFFFF',
-  surface: '#EEF2F8',
+  background: '#F3F6FB',
+  surface: '#FFFFFF',
   surfaceOverlay: 'rgba(5,11,20,0.94)',
   divider: '#DCE3EF',
   textPrimary: '#101D35',
@@ -55,7 +62,9 @@ export const lightPalette: Palette = {
   problem: '#991B1B',
   // A deeper royal blue keeps white action labels at the app's 7:1 text target.
   primaryButton: { background: '#1747C9', text: '#FFFFFF', border: '#1747C9' },
-  secondaryButton: { background: '#EEF2F8', text: '#101D35', border: '#7B879C' },
+  secondaryButton: { background: '#FFFFFF', text: '#101D35', border: '#7B879C' },
+  shadow: '#0B1B3F',
+  knob: '#FFFFFF',
 };
 
 export const palettes: Record<ColorScheme, Palette> = {
@@ -71,8 +80,10 @@ export const typography = {
   body: { fontSize: 17, lineHeight: 24, fontWeight: '400' as const },
   label: { fontSize: 17, lineHeight: 24, fontWeight: '600' as const },
   status: { fontSize: 20, lineHeight: 28, fontWeight: '600' as const },
-  heading: { fontSize: 22, lineHeight: 30, fontWeight: '600' as const },
-  title: { fontSize: 28, lineHeight: 36, fontWeight: '700' as const },
+  // Large type is tracked slightly tighter, as on iOS, so titles read as one shape.
+  heading: { fontSize: 22, lineHeight: 30, fontWeight: '600' as const, letterSpacing: -0.2 },
+  title: { fontSize: 30, lineHeight: 38, fontWeight: '700' as const, letterSpacing: -0.5 },
+  caption: { fontSize: 17, lineHeight: 22, fontWeight: '400' as const },
   timer: { fontSize: 22, lineHeight: 30, fontWeight: '700' as const },
 } as const;
 
@@ -93,6 +104,7 @@ export const layout = {
   cornerRadius: 12,
   focusRingWidth: 4,
   buttonBorderWidth: 1.5,
+  iconSize: 24,
 } as const;
 
 export type Status = 'good' | 'adjust' | 'problem';

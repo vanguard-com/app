@@ -112,10 +112,16 @@ export default function SceneModelScreen() {
         {kind === 'detailed' ? t.gemmaLicense : t.standardLicense}
       </Text>
       {busy ? (
-        <AccessibleButton label={t.cancel.label} hint={t.cancel.hint} onPress={cancel} />
+        <AccessibleButton
+          icon="close-outline"
+          label={t.cancel.label}
+          hint={t.cancel.hint}
+          onPress={cancel}
+        />
       ) : installed ? (
         <>
           <AccessibleButton
+            icon="checkmark-circle-outline"
             label={t.select.label}
             hint={t.select.hint}
             disabled={selected === kind}
@@ -130,6 +136,7 @@ export default function SceneModelScreen() {
             }}
           />
           <AccessibleButton
+            icon="trash-outline"
             label={t.delete.label}
             hint={t.delete.hint}
             onPress={() => {
@@ -143,6 +150,8 @@ export default function SceneModelScreen() {
         </>
       ) : (
         <AccessibleButton
+          variant="primary"
+          icon="download-outline"
           label={t.download.label}
           hint={t.download.hint}
           disabled={!manifest}
@@ -151,6 +160,8 @@ export default function SceneModelScreen() {
       )}
       {!busy ? (
         <AccessibleButton
+          navigation
+          icon="document-text-outline"
           label={t.licence.label}
           hint={t.licence.hint}
           role="link"

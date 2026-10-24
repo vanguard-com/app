@@ -1,8 +1,14 @@
-import { Screen, ScreenHeader, ToggleRow } from '@/components';
+import { Screen, ScreenHeader, ToggleRow, type IconName } from '@/components';
 import { strings } from '@/i18n';
 import { useSettings, type FeedbackToggles } from '@/store/settingsStore';
 
 const TYPES: (keyof FeedbackToggles)[] = ['eyeContact', 'expression', 'posture', 'voice'];
+const ICONS: Record<keyof FeedbackToggles, IconName> = {
+  eyeContact: 'eye-outline',
+  expression: 'happy-outline',
+  posture: 'body-outline',
+  voice: 'mic-outline',
+};
 
 export default function FeedbackTypesSettings() {
   const t = strings.settings;
@@ -15,6 +21,7 @@ export default function FeedbackTypesSettings() {
       {TYPES.map((key) => (
         <ToggleRow
           key={key}
+          icon={ICONS[key]}
           label={t[key].label}
           value={feedback[key]}
           onChange={(value) => setFeedback(key, value)}

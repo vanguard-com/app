@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
 import { router, useIsFocused } from 'expo-router';
-import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { AccessibleButton, Screen, ScreenHeader, type IconName } from '@/components';
 import {
   getPermissionStatus,
   PERMISSION_KINDS,
@@ -10,6 +10,13 @@ import {
 import { useAppActive } from '@/hooks/useAppActive';
 import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
+
+const ICONS: Record<PermissionKind, IconName> = {
+  camera: 'camera-outline',
+  microphone: 'mic-outline',
+  speech: 'chatbubble-ellipses-outline',
+  photos: 'images-outline',
+};
 
 export default function PermissionSettings() {
   const t = strings.permissions;
@@ -41,25 +48,29 @@ export default function PermissionSettings() {
       <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
         {t.manageIntro}
       </Text>
-      {PERMISSION_KINDS.map((kind) => (
-        <AccessibleButton
-          navigation
-          key={kind}
-          label={t.item(
-            t.names[kind],
-            values[kind] === undefined
-              ? t.status.unknown
-              : values[kind] === 'error'
-                ? t.status.unavailable
-                : values[kind]
-                  ? t.status.allowed
-                  : t.status.off,
-          )}
-          hint={t.detailHint}
-          onPress={() => router.push({ pathname: '/settings/permission', params: { kind } })}
-          testID={`access-${kind}`}
-        />
-      ))}
+      {PERMISSION_KINDS.map((kind) => {
+        const state =
+          values[kind] === undefined
+            ? t.status.unknown
+            : values[kind] === 'error'
+              ? t.status.unavailable
+              : values[kind]
+                ? t.status.allowed
+                : t.status.off;
+        return (
+          <AccessibleButton
+            navigation
+            key={kind}
+            icon={ICONS[kind]}
+            text={t.names[kind]}
+            trailing={state}
+            label={t.item(t.names[kind], state)}
+            hint={t.detailHint}
+            onPress={() => router.push({ pathname: '/settings/permission', params: { kind } })}
+            testID={`access-${kind}`}
+          />
+        );
+      })}
     </Screen>
   );
 }

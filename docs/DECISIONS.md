@@ -459,3 +459,22 @@ eventual grant still completes that requested Photos save. Real camera/microphon
 hardware interruptions and audio routing still
 require the TESTING.md phone checklist. No dependency, native module, network service, store
 credential or new feature phase is introduced.
+
+## Premium Clear Day look and motion
+
+Owner asked for the Clear Day mockups plus an Apple-like, more premium feel in the style of Emil
+Kowalski, with functionality first. Light mode now uses a faint blue page (#F3F6FB) with white
+cards, a soft shadow and the existing 3:1 border, so every control still has a visible edge for
+low vision users. Buttons, rows and info panels gained Ionicons from `@expo/vector-icons` (icons
+are decorative and hidden from screen readers; labels are unchanged). List rows read leading
+icon, label, value, chevron like iOS settings. Switches use an iOS style track whose knob slides,
+and the On/Off word stays beside it so colour is never the only signal. Empty Review and
+Playback screens show a centred placeholder.
+
+Motion is small and fast: presses scale to 0.97 in 120 ms and settle in 200 ms on a strong
+ease-out curve, switches slide in 180 ms, and nothing moves when Reduce Motion is on. Releasing
+a press always returns to full size, even if the control became disabled mid-press. A disabled
+primary button drops its blue fill so its dashed border shows it is unavailable. The camera
+Subject button stacks its icon above the text so it never overlaps Record. `expo-asset` was
+added because `expo-font` (used by the icons) needs it; neither adds a native permission or a
+network service.

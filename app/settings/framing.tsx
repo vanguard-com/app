@@ -19,12 +19,14 @@ export default function FramingSettings() {
         {t.safeZone.help}
       </Text>
       <ToggleRow
+        icon="camera-outline"
         label={t.autoLens.label}
         value={autoLens}
         onChange={(value) => update({ autoLens: value })}
         testID="setting-auto-lens"
       />
       <AdjustableRow
+        icon="scan-outline"
         label={t.safeZone.label}
         valueText={t.safeZone.value(Math.round(zone * 100))}
         onIncrement={() => update({ safeZone: nextInCycle<number>(ZONES, zone) })}

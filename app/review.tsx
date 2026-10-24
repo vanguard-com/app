@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { router, useFocusEffect, useIsFocused } from 'expo-router';
 
 import { applyAudioSession } from '@/audio/audioSession';
-import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { AccessibleButton, EmptyState, Screen, ScreenHeader } from '@/components';
 import { cues } from '@/cues';
 import { hasMicrophonePermission, hasSpeechPermission } from '@/features/permissions/permissions';
 import { deleteRecording, saveToPhotos } from '@/features/recording/files';
@@ -205,11 +205,13 @@ export default function ReviewScreen() {
   return (
     <Screen>
       <ScreenHeader announce={false} title={t.title} hideBack />
-      <Text style={[typography.heading, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
-        {recording ? recordingSummary(recording, detailed) : t.empty}
-      </Text>
       {recording ? (
         <>
+          <Text
+            style={[typography.heading, { color: colors.textPrimary, marginBottom: spacing.lg }]}
+          >
+            {recordingSummary(recording, detailed)}
+          </Text>
           <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
             {recording.savedToPhotos ? t.saved : t.nextSteps}
           </Text>
@@ -218,6 +220,7 @@ export default function ReviewScreen() {
           </Text>
           <AccessibleButton
             variant="primary"
+            icon="play"
             label={t.play.label}
             hint={t.play.hint}
             onPress={() => play()}
@@ -225,6 +228,7 @@ export default function ReviewScreen() {
             testID="review-play"
           />
           <AccessibleButton
+            icon="refresh-outline"
             label={t.retake.label}
             hint={t.retake.hint}
             onPress={retake}
@@ -232,6 +236,7 @@ export default function ReviewScreen() {
             testID="review-retake"
           />
           <AccessibleButton
+            icon={recording.savedToPhotos ? 'checkmark-circle-outline' : 'download-outline'}
             label={recording.savedToPhotos ? t.savedLabel : t.save.label}
             hint={t.save.hint}
             onPress={() => void save()}
@@ -239,6 +244,7 @@ export default function ReviewScreen() {
             testID="review-save"
           />
           <AccessibleButton
+            icon="share-outline"
             label={t.share.label}
             hint={t.share.hint}
             onPress={() => void share()}
@@ -247,12 +253,16 @@ export default function ReviewScreen() {
           />
         </>
       ) : (
-        <AccessibleButton
-          label={t.retake.label}
-          hint={t.retake.hint}
-          onPress={retake}
-          testID="review-retake"
-        />
+        <>
+          <EmptyState icon="film-outline" title={t.empty} />
+          <AccessibleButton
+            icon="refresh-outline"
+            label={t.retake.label}
+            hint={t.retake.hint}
+            onPress={retake}
+            testID="review-retake"
+          />
+        </>
       )}
     </Screen>
   );

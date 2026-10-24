@@ -40,6 +40,7 @@ export default function AboutScreen() {
     <Screen>
       <ScreenHeader title={t.about.label} />
       <AccessibleButton
+        icon="pulse-outline"
         label={t.version(APP_VERSION)}
         hint={t.versionHint}
         onPress={onVersionTap}
@@ -51,6 +52,7 @@ export default function AboutScreen() {
       {debugOverlay ? (
         <AccessibleButton
           navigation
+          icon="speedometer-outline"
           label={strings.background.benchmark.label}
           hint={strings.background.benchmark.hint}
           onPress={() => router.push('/benchmark')}

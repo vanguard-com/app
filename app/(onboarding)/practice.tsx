@@ -7,7 +7,7 @@ import {
   type CameraOutput,
 } from 'react-native-vision-camera';
 import { useIsFocused, useLocalSearchParams } from 'expo-router';
-import { AccessibleButton, Screen, ScreenHeader } from '@/components';
+import { AccessibleButton, InfoCard, Screen, ScreenHeader } from '@/components';
 import { cues } from '@/cues';
 import { finishOnboarding } from '@/features/onboarding/navigation';
 import { getPermissionStatus } from '@/features/permissions/permissions';
@@ -114,26 +114,29 @@ export default function Practice() {
       <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
         {intro}
       </Text>
-      <Text style={[typography.heading, { color: colors.textPrimary, marginBottom: spacing.md }]}>
-        {running ? t.recording : t.idle}
-      </Text>
-      <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
+      <InfoCard
+        icon={running ? 'radio-button-on' : 'pause-circle-outline'}
+        title={running ? t.recording : t.idle}
+      >
         {t.progress(tried.button, tried.volume)}
-      </Text>
+      </InfoCard>
       <AccessibleButton
         variant="primary"
+        icon={running ? 'stop' : 'radio-button-on'}
         label={running ? t.stop.label : t.start.label}
         hint={running ? t.stop.hint : t.start.hint}
         onPress={() => toggle('button')}
         testID="practice-record"
       />
       <AccessibleButton
+        icon="play-outline"
         label={strings.onboarding.again.label}
         hint={strings.onboarding.again.hint}
         onPress={narration.replay}
         testID="practice-repeat"
       />
       <AccessibleButton
+        icon="camera-outline"
         label={
           replay === '1' ? strings.onboarding.replayFinish.label : strings.onboarding.finish.label
         }
