@@ -15,7 +15,7 @@ import { strings } from '@/i18n';
 import { useSession, type CameraFacing } from '@/store/sessionStore';
 import { useSettings } from '@/store/settingsStore';
 
-import { AutoZoom, FramingTracker, previewBox, type Framing, type Target } from './model';
+import { AutoZoom, FramingTracker, previewBox, type Box, type Framing, type Target } from './model';
 
 const t = strings.framing;
 
@@ -25,6 +25,7 @@ export function useFraming(
   active: boolean,
   size: { width: number; height: number },
   externalFrames = false,
+  onObservation?: (box: Box | null, at: number) => void,
 ) {
   const safeZone = useSettings((s) => s.safeZone);
   const autoLens = useSettings((s) => s.autoLens);
@@ -32,10 +33,10 @@ export function useFraming(
   const [fps, setFps] = useState(0);
   const tracker = useRef(new FramingTracker(0));
   const zoom = useRef(new AutoZoom());
-  const live = useRef({ active, size, safeZone, autoLens, facing });
+  const live = useRef({ active, size, safeZone, autoLens, facing, onObservation });
   useLayoutEffect(() => {
-    live.current = { active, size, safeZone, autoLens, facing };
-  }, [active, size, safeZone, autoLens, facing]);
+    live.current = { active, size, safeZone, autoLens, facing, onObservation };
+  });
   const lastTone = useRef(-Infinity);
   const metrics = useRef({ start: 0, count: 0 });
   const latest = useRef(result);
@@ -64,6 +65,7 @@ export function useFraming(
       // moving the phone right moves the subject left, just as with the rear preview.
       // Reversing again here would produce the wrong physical movement instruction.
       const next = tracker.current.update(targets, now, false, current.safeZone);
+      current.onObservation?.(targets.length ? next.box : null, now);
       publish(next);
       metrics.current.count++;
       if (now - metrics.current.start >= 1000) {

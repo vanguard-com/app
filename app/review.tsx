@@ -1,134 +1,201 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Text } from 'react-native';
 import { router, useFocusEffect, useIsFocused } from 'expo-router';
 
+import { applyAudioSession } from '@/audio/audioSession';
 import { AccessibleButton, Screen, ScreenHeader } from '@/components';
 import { cues } from '@/cues';
-import { useRecordedVoice } from '@/features/feedback/useRecordedVoice';
-import { useSettings } from '@/store/settingsStore';
-import { useRecordingHistory } from '@/store/recordingHistory';
 import { hasMicrophonePermission, hasSpeechPermission } from '@/features/permissions/permissions';
 import { deleteRecording, saveToPhotos } from '@/features/recording/files';
+import { shareRecording } from '@/features/recording/share';
+import { recordingSummary } from '@/features/recording/summary';
+import { claimSpeech } from '@/features/voice/speechLease';
 import type { VoiceCommand } from '@/features/voice/commands';
 import { useVoiceCommands } from '@/features/voice/useVoiceCommands';
 import { useAppActive } from '@/hooks/useAppActive';
 import { strings } from '@/i18n';
+import { useRecordingHistory } from '@/store/recordingHistory';
 import { useSession } from '@/store/sessionStore';
+import { useSettings } from '@/store/settingsStore';
 import { useTheme } from '@/theme';
-import { useScreenAnnouncement } from '@/utils/accessibility';
 
 const t = strings.review;
 
-// Phase 1: summary, Save and Retake. Play and Share arrive in Phase 6.
 export default function ReviewScreen() {
   const { colors, typography, spacing } = useTheme();
   const recording = useSession((s) => s.lastRecording);
-  const setLastRecording = useSession((s) => s.setLastRecording);
-  const markSaved = useSession((s) => s.markSaved);
+  const detailed = useSettings((s) => s.verbosity === 'detailed');
   const isFocused = useIsFocused();
   const appActive = useAppActive();
-  const [saving, setSaving] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const operation = useRef(false);
+  const mounted = useRef(true);
+  const live = useRef({ isFocused, appActive });
   const [speechAllowed, setSpeechAllowed] = useState(false);
-
-  const detailedFeedback = useSettings((s) => s.verbosity === 'detailed');
-  const feedbackEnabled = useSettings((s) => s.liveFeedback && s.feedback.voice);
-  const voice = useRecordedVoice(recording, isFocused && appActive, feedbackEnabled);
-
-  useScreenAnnouncement(t.screenAnnouncement);
-
-  const startVoiceAnalysis = voice.start;
-  const cancelVoiceAnalysis = voice.cancel;
-  const summary = recording ? t.summary(strings.common.duration(recording.durationMs / 1000)) : '';
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  useLayoutEffect(() => {
+    live.current = { isFocused, appActive };
+  });
+  useEffect(() => {
+    if (isFocused && appActive) void hasSpeechPermission().then(setSpeechAllowed);
+  }, [isFocused, appActive]);
 
   useFocusEffect(
     useCallback(() => {
+      applyAudioSession();
       const current = useSession.getState().lastRecording;
-      if (!current) return;
       cues.say({
-        id: `sys.review.${current.uri}`,
+        id: `sys.review.${current?.uri ?? 'empty'}`,
         category: 'system',
-        text: `${t.summary(strings.common.duration(current.durationMs / 1000))} ${current.feedbackSummary ? strings.feedback.summary(current.feedbackSummary) : ''} ${current.voiceSummary ? strings.feedback.voiceSummary(current.voiceSummary, useSettings.getState().verbosity === 'detailed') : ''} ${current.savedToPhotos ? t.saved : current.autoSaveResult === 'denied' ? t.saveDenied : current.autoSaveResult === 'failed' ? t.saveFailed : t.nextSteps}`,
+        text: current
+          ? `${recordingSummary(current, useSettings.getState().verbosity === 'detailed')} ${current.savedToPhotos ? t.saved : current.autoSaveResult === 'denied' ? t.saveDenied : current.autoSaveResult === 'failed' ? t.saveFailed : t.nextSteps}`
+          : t.empty,
+        force: true,
       });
+      return () => {
+        cues.clearCategory('system');
+      };
     }, []),
   );
 
-  useEffect(() => {
-    hasSpeechPermission().then(setSpeechAllowed);
-  }, []);
-
   const save = useCallback(async () => {
     const current = useSession.getState().lastRecording;
-    if (!current || saving) return;
+    if (!current || operation.current) return;
     if (current.savedToPhotos) {
       cues.say({ id: 'sys.alreadySaved', category: 'system', text: t.alreadySaved, force: true });
       return;
     }
-    setSaving(true);
-    const result = await saveToPhotos(current.uri);
-    setSaving(false);
-    if (result === 'saved') {
-      markSaved();
+    operation.current = true;
+    setBusy(true);
+    try {
+      const result = await saveToPhotos(current.uri);
+      if (result === 'saved' && useSession.getState().lastRecording?.uri === current.uri)
+        useSession.getState().markSaved();
+      if (!mounted.current || !live.current.isFocused || !live.current.appActive) return;
       cues.say({
-        id: `sys.saved.${current.uri}`,
+        id: `sys.save.${current.uri}.${result}`,
         category: 'system',
-        text: t.saved,
-        earcon: 'saved',
-        haptic: 'single',
+        text: result === 'saved' ? t.saved : result === 'denied' ? t.saveDenied : t.saveFailed,
+        earcon: result === 'saved' ? 'saved' : 'error',
+        haptic: result === 'saved' ? 'single' : 'double',
         force: true,
       });
-    } else {
-      cues.say({
-        id: `sys.saveError.${Date.now()}`,
-        category: 'system',
-        text: result === 'denied' ? t.saveDenied : t.saveFailed,
-        earcon: 'error',
-        haptic: 'double',
-        force: true,
-      });
+    } finally {
+      operation.current = false;
+      setBusy(false);
     }
-  }, [markSaved, saving]);
+  }, []);
+
+  const share = useCallback(async () => {
+    const current = useSession.getState().lastRecording;
+    if (!current || operation.current) return;
+    let release: () => void;
+    try {
+      release = claimSpeech('review.share');
+    } catch {
+      cues.say({ id: 'sys.review.busy', category: 'system', text: t.busy, force: true });
+      return;
+    }
+    operation.current = true;
+    setBusy(true);
+    cues.clear();
+    try {
+      // Capture has already moved this file into app storage before Review is shown.
+      const result = await shareRecording(
+        current.uri,
+        () => mounted.current && live.current.isFocused && live.current.appActive,
+      );
+      if (
+        result !== 'opened' &&
+        result !== 'cancelled' &&
+        mounted.current &&
+        live.current.isFocused &&
+        live.current.appActive
+      )
+        cues.say({
+          id: `sys.share.${result}`,
+          category: 'system',
+          force: true,
+          earcon: 'error',
+          text:
+            result === 'missing'
+              ? t.shareMissing
+              : result === 'unavailable'
+                ? t.shareUnavailable
+                : t.shareFailed,
+        });
+    } finally {
+      operation.current = false;
+      setBusy(false);
+      if (mounted.current && live.current.isFocused && live.current.appActive) applyAudioSession();
+      release();
+    }
+  }, []);
+
+  const play = useCallback((analyse = false) => {
+    if (operation.current || !useSession.getState().lastRecording) return;
+    router.push({ pathname: '/playback', params: { analyse: analyse ? '1' : '0' } });
+  }, []);
 
   const retake = useCallback(() => {
+    if (operation.current) return;
     const current = useSession.getState().lastRecording;
     if (current) {
       deleteRecording(current.uri);
       useRecordingHistory.getState().forget(current.uri);
     }
-    setLastRecording(null);
+    useSession.getState().setLastRecording(null);
     if (router.canGoBack()) router.back();
     else router.replace('/camera');
-  }, [setLastRecording]);
+  }, []);
 
   const onCommand = useCallback(
     (command: VoiceCommand) => {
       switch (command.type) {
-        case 'analyseVoice':
-          void startVoiceAnalysis();
+        case 'playVideo':
+          play();
           return;
-        case 'cancelVoiceAnalysis':
-          cancelVoiceAnalysis();
+        case 'analyseVoice':
+          play(true);
           return;
         case 'saveVideo':
-          save();
+          void save();
+          return;
+        case 'postVideo':
+          void share();
           return;
         case 'retakeVideo':
-        case 'startRecording':
           retake();
           return;
         case 'help':
-          cues.say({ id: 'sys.help', category: 'system', text: strings.voice.help, force: true });
+          cues.say({
+            id: 'sys.help',
+            category: 'system',
+            text: strings.voice.help.review,
+            force: true,
+          });
           return;
         default:
-          cues.say({ id: 'sys.notYet', category: 'system', text: strings.voice.notYet });
+          cues.say({
+            id: 'sys.reviewOnly',
+            category: 'system',
+            text: strings.voice.cameraOnly,
+            force: true,
+          });
       }
     },
-    [retake, save, startVoiceAnalysis, cancelVoiceAnalysis],
+    [play, retake, save, share],
   );
 
   useVoiceCommands(
     isFocused &&
       appActive &&
-      !voice.busy &&
+      !busy &&
       speechAllowed &&
       hasMicrophonePermission() &&
       recording !== null,
@@ -137,56 +204,56 @@ export default function ReviewScreen() {
 
   return (
     <Screen>
-      {/* Retake is the way back, so the header has no separate back button. */}
       <ScreenHeader title={t.title} hideBack />
-      <Text style={[typography.heading, { color: colors.textPrimary, marginBottom: spacing.xl }]}>
-        {recording ? summary : t.empty}
+      <Text style={[typography.heading, { color: colors.textPrimary, marginBottom: spacing.lg }]}>
+        {recording ? recordingSummary(recording, detailed) : t.empty}
       </Text>
       {recording ? (
+        <>
+          <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
+            {recording.savedToPhotos ? t.saved : t.nextSteps}
+          </Text>
+          <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
+            {t.shareInfo}
+          </Text>
+          <AccessibleButton
+            variant="primary"
+            label={t.play.label}
+            hint={t.play.hint}
+            onPress={() => play()}
+            disabled={busy}
+            testID="review-play"
+          />
+          <AccessibleButton
+            label={t.retake.label}
+            hint={t.retake.hint}
+            onPress={retake}
+            disabled={busy}
+            testID="review-retake"
+          />
+          <AccessibleButton
+            label={recording.savedToPhotos ? t.savedLabel : t.save.label}
+            hint={t.save.hint}
+            onPress={() => void save()}
+            disabled={busy}
+            testID="review-save"
+          />
+          <AccessibleButton
+            label={t.share.label}
+            hint={t.share.hint}
+            onPress={() => void share()}
+            disabled={busy}
+            testID="review-share"
+          />
+        </>
+      ) : (
         <AccessibleButton
-          variant="primary"
-          label={recording.savedToPhotos ? t.savedLabel : t.save.label}
-          hint={t.save.hint}
-          onPress={save}
-          disabled={saving}
-          style={{ marginBottom: spacing.md }}
-          testID="review-save"
+          label={t.retake.label}
+          hint={t.retake.hint}
+          onPress={retake}
+          testID="review-retake"
         />
-      ) : null}
-      {recording?.feedbackSummary ? (
-        <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
-          {strings.feedback.summary(recording.feedbackSummary)}
-        </Text>
-      ) : null}
-      {recording?.voiceSummary ? (
-        <Text style={[typography.body, { color: colors.textPrimary, marginBottom: spacing.md }]}>
-          {strings.feedback.voiceSummary(recording.voiceSummary, detailedFeedback)}
-        </Text>
-      ) : null}
-      {recording?.hasAudio && feedbackEnabled ? (
-        <AccessibleButton
-          label={
-            voice.busy ? strings.feedback.cancelVoice.label : strings.feedback.analyseVoice.label
-          }
-          hint={voice.busy ? strings.feedback.cancelVoice.hint : strings.feedback.analyseVoice.hint}
-          onPress={() => (voice.busy ? voice.cancel() : void voice.start())}
-          testID="review-voice"
-        />
-      ) : null}
-      {voice.busy ? (
-        <Text
-          style={[typography.body, { color: colors.textPrimary }]}
-          accessibilityLiveRegion="polite"
-        >
-          {strings.feedback.progress(voice.progress)}
-        </Text>
-      ) : null}
-      <AccessibleButton
-        label={t.retake.label}
-        hint={t.retake.hint}
-        onPress={retake}
-        testID="review-retake"
-      />
+      )}
     </Screen>
   );
 }

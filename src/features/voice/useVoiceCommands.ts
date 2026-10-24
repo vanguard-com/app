@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import {
   ExpoSpeechRecognitionModule,
@@ -46,16 +46,22 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   const enabledRef = useRef(enabled);
   const onCommandRef = useRef(onCommand);
   const runningRef = useRef(false);
+  const startingRef = useRef(false);
+  const permissionBlocked = useRef(false);
   const restartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const backoffRef = useRef(RESTART_DELAY_MS);
   const lastCommandAt = useRef(0);
   const forceServerRef = useRef(false);
+  const generation = useRef(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    enabledRef.current = enabled;
     onCommandRef.current = onCommand;
-  }, [onCommand]);
+  });
 
   const stop = () => {
+    generation.current++;
+    startingRef.current = false;
     if (restartTimer.current) clearTimeout(restartTimer.current);
     restartTimer.current = null;
     if (runningRef.current) {
@@ -69,12 +75,21 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   };
 
   const start = async () => {
-    if (!enabledRef.current || runningRef.current || cues.isAudioBusy() || isSpeechClaimed())
+    if (
+      !enabledRef.current ||
+      startingRef.current ||
+      runningRef.current ||
+      permissionBlocked.current ||
+      cues.isAudioBusy() ||
+      isSpeechClaimed()
+    )
       return;
-    runningRef.current = true;
+    startingRef.current = true;
+    const token = ++generation.current;
     const onDevice = !forceServerRef.current && (await prefersOnDevice());
-    if (!enabledRef.current || isSpeechClaimed()) {
-      runningRef.current = false;
+    if (token !== generation.current) return;
+    startingRef.current = false;
+    if (!enabledRef.current || isSpeechClaimed() || cues.isAudioBusy()) {
       return;
     }
     const options: ExpoSpeechRecognitionOptions = {
@@ -92,6 +107,7 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
       },
     };
     try {
+      runningRef.current = true;
       ExpoSpeechRecognitionModule.start(options);
     } catch (error) {
       console.warn('Speech recognition failed to start', error);
@@ -101,7 +117,7 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   };
 
   const scheduleRestart = (afterError: boolean) => {
-    if (!enabledRef.current || isSpeechClaimed()) return;
+    if (!enabledRef.current || permissionBlocked.current || isSpeechClaimed()) return;
     if (restartTimer.current) clearTimeout(restartTimer.current);
     backoffRef.current = afterError
       ? Math.min(MAX_BACKOFF_MS, backoffRef.current * 2)
@@ -113,7 +129,8 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   };
 
   useSpeechRecognitionEvent('result', (event) => {
-    if (!enabledRef.current || cues.isAudioBusy() || isSpeechClaimed()) return;
+    if (!enabledRef.current || !runningRef.current || cues.isAudioBusy() || isSpeechClaimed())
+      return;
     const transcript = event.results[0]?.transcript ?? '';
     const command = parseCommand(transcript);
     if (!command) return;
@@ -137,6 +154,7 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
     switch (event.error) {
       case 'not-allowed':
       case 'service-not-allowed':
+        permissionBlocked.current = true;
         enabledRef.current = false;
         return;
       case 'language-not-supported':
@@ -178,12 +196,16 @@ export function useVoiceCommands(enabled: boolean, onCommand: (command: VoiceCom
   useEffect(() => {
     enabledRef.current = enabled;
     if (enabled) {
+      permissionBlocked.current = false;
       backoffRef.current = RESTART_DELAY_MS;
       start();
     } else {
       stop();
     }
-    return stop;
+    return () => {
+      enabledRef.current = false;
+      stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 }

@@ -1,6 +1,7 @@
 import type { FeedbackObservation } from '@/features/feedback/model';
 import type { FeedbackSummary } from '@/features/feedback/stats';
 import type { VoiceSummary } from '@/features/feedback/recordedVoice';
+import type { RecordingSummary } from '@/features/recording/stats';
 
 // All user facing text lives here so more languages can be added later.
 // Functions are used where a string needs numbers or names inserted.
@@ -425,7 +426,36 @@ export const en = {
     screenAnnouncement: 'Review',
     empty: 'No recording yet',
     summary: (duration: string) => `Video length ${duration}.`,
-    nextSteps: 'Use Save to keep it in your photos, or Retake for a new one.',
+    nextSteps: 'The video is saved in Lumi. Choose Play, Retake, Save to Photos, or Share.',
+    noAudio: 'This video has no recorded sound.',
+    play: { label: 'Play', hint: 'Opens playback and voice analysis' },
+    share: {
+      label: 'Share',
+      hint: 'Opens the system sheet to send this saved video to another app',
+    },
+    shareTitle: 'Share your Lumi recording',
+    shareInfo:
+      'Choose an installed app in the share sheet, then finish posting there. Available apps depend on your phone.',
+    shareMissing:
+      'This video file is no longer in Lumi. Check Photos for a saved copy, or choose Retake.',
+    shareUnavailable: 'Sharing is unavailable on this phone. You can still save to Photos.',
+    shareFailed: 'The share sheet did not open. Your video is still in Lumi. Try again.',
+    busy: 'Please wait for the current action to finish.',
+    measurements: (value?: RecordingSummary) => {
+      const framing =
+        value?.inFramePercent == null
+          ? 'Framing was not measured.'
+          : `Subject fully in frame ${value.inFramePercent}% of ${en.common.duration(value.framingMeasuredMs / 1000)} measured.`;
+      const lighting =
+        value?.goodLightingPercent == null
+          ? 'Face lighting was not measured.'
+          : `Lighting good ${value.goodLightingPercent}% of ${en.common.duration(value.lightingMeasuredMs / 1000)} measured.`;
+      const tail =
+        value && value.darkTailMs >= 1000
+          ? ` Lighting was dark for the last ${en.common.duration(value.darkTailMs / 1000)} measured.`
+          : '';
+      return `${framing} ${lighting}${tail}`;
+    },
     save: { label: 'Save', hint: 'Saves the video to your photos' },
     savedLabel: 'Saved',
     retake: {
@@ -436,9 +466,23 @@ export const en = {
     saved: 'Saved to Photos',
     alreadySaved: 'Already saved to Photos',
     saveDenied:
-      'Photo access is off, so Lumi cannot save. To allow it, open your phone settings, find Lumi, and allow Photos.',
-    saveFailed: 'Saving did not work. Please try again.',
+      'Photo access is off, so Lumi cannot add this video to Photos. It is saved in Lumi and can be shared. To allow Photos, open your phone settings, find Lumi, and allow Photos.',
+    saveFailed: 'Saving to Photos did not work. The video stays in Lumi. Please try again.',
     deleted: 'Video deleted',
+  },
+
+  playback: {
+    title: 'Playback',
+    screenAnnouncement:
+      'Playback. Commands pause while the video plays. Use Pause to speak a command. Voice analysis is available here when enabled in Settings.',
+    play: { label: 'Play', hint: 'Continues the video with its recorded sound' },
+    pause: { label: 'Pause', hint: 'Pauses the video and enables spoken commands' },
+    restart: { label: 'From beginning', hint: 'Restarts playback from the beginning' },
+    position: (position: string, duration: string) => `${position} of ${duration}`,
+    ended: 'Playback finished',
+    failed: 'This video could not be played. Return to Review to save, share, or retake it.',
+    analysisOff: 'Voice analysis needs a video with sound and Voice feedback enabled in Settings.',
+    reviewOnly: 'Return to Review for saving, sharing, or a new recording.',
   },
 
   permissions: {
@@ -469,8 +513,17 @@ export const en = {
 
   voice: {
     // Spoken only while the recognizer is paused, so these may contain command phrases.
-    help: 'You can say: start recording, stop recording, switch camera, focus on my face, save video, retake video, check lighting, find light, cancel light scan, feedback on, feedback off, analyse my voice, what is behind me, describe my background, cancel scene description, install detailed mode, use standard mode, use detailed mode, delete detailed mode, or Lumi help.',
-    notYet: 'That command comes in a later update.',
+    help: {
+      camera:
+        'On Camera you can say: start recording, stop recording when listening during filming is enabled, switch camera, focus on my face, check lighting, find light, cancel light scan, feedback on, feedback off, what is behind me, describe my background, cancel scene description, install detailed mode, use standard mode, use detailed mode, delete standard mode, delete detailed mode, or Lumi help.',
+      review:
+        'On Review you can say: play video, save video, retake video, post video to open the share sheet, analyse my voice, or Lumi help. Complete posting in the app you choose.',
+      playback:
+        'While paused you can say: play video, restart video, analyse my voice, or Lumi help. Use the Pause button while playing, and Cancel analysis while analysing. Return to Review to save, share, or retake.',
+    },
+    reviewOnly: 'Finish a recording, then use Review for playback, saving and sharing.',
+    cameraOnly:
+      'That command is available on another screen. Ask for help to hear commands for this screen.',
     unavailable: 'Spoken commands are not available on this phone.',
     whileRecordingOff: 'Spoken commands pause while recording. Press a volume button to stop.',
   },

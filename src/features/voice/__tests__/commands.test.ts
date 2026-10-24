@@ -17,6 +17,9 @@ describe('parseCommand', () => {
     ['record it again', 'retakeVideo'],
     ['post video', 'postVideo'],
     ['share my video', 'postVideo'],
+    ['play my video', 'playVideo'],
+    ['pause the video', 'pauseVideo'],
+    ['restart video', 'restartVideo'],
     ['check lighting', 'checkLighting'],
     ['find light', 'findLight'],
     ["What's behind me?", 'whatIsBehindMe'],
@@ -97,10 +100,11 @@ describe('UI text never contains a command phrase', () => {
     expect(texts.length).toBeGreaterThan(50);
   });
 
-  it.each(texts.filter((t) => !ALLOWED.includes(t.path)).map((t) => [t.path, t.text]))(
-    '%s',
-    (_path, text) => {
-      expect(parseCommand(text)).toBeNull();
-    },
-  );
+  it.each(
+    texts
+      .filter((t) => !ALLOWED.some((p) => t.path === p || t.path.startsWith(`${p}.`)))
+      .map((t) => [t.path, t.text]),
+  )('%s', (_path, text) => {
+    expect(parseCommand(text)).toBeNull();
+  });
 });

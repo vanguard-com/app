@@ -41,6 +41,7 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
   const waiters = useRef<{ audio: boolean; resolve: () => void }[]>([]);
   const recorderRef = useRef<Recorder | null>(null);
   const startedAtRef = useRef(0);
+  const stoppedAtRef = useRef<number | null>(null);
   const callbacksRef = useRef(callbacks);
 
   // Layout effects run right after each commit, before the camera's async reconfiguration
@@ -90,10 +91,14 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
       }
       const recorder = await outputRef.current.createRecorder({});
       recorderRef.current = recorder;
+      stoppedAtRef.current = null;
       const hasAudio = outputHasAudio.current;
       await recorder.startRecording(
         async (path) => {
-          const durationMs = Math.max(0, Date.now() - startedAtRef.current);
+          const durationMs = Math.max(
+            0,
+            (stoppedAtRef.current ?? Date.now()) - startedAtRef.current,
+          );
           try {
             const uri = keepRecording(path);
             const base: RecordingInfo = { uri, durationMs, hasAudio, savedToPhotos: false };
@@ -131,6 +136,7 @@ export function useRecorder(micAllowed: boolean, callbacks: RecorderCallbacks) {
     const recorder = recorderRef.current;
     if (!recorder || useSession.getState().recordingPhase !== 'recording') return;
     setPhase('stopping');
+    stoppedAtRef.current = Date.now();
     try {
       // The finished callback passed to startRecording does the rest.
       await recorder.stopRecording();

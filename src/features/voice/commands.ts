@@ -11,6 +11,9 @@ export type VoiceCommand =
   | { type: 'saveVideo' }
   | { type: 'retakeVideo' }
   | { type: 'postVideo' }
+  | { type: 'playVideo' }
+  | { type: 'pauseVideo' }
+  | { type: 'restartVideo' }
   | { type: 'checkLighting' }
   | { type: 'findLight' }
   | { type: 'analyseVoice' }
@@ -34,6 +37,9 @@ interface Rule {
 
 // Order matters: more specific phrases first.
 const RULES: Rule[] = [
+  { pattern: /\brestart (the |my |this )?video\b/, build: () => ({ type: 'restartVideo' }) },
+  { pattern: /\bpause (the |my |this )?video\b/, build: () => ({ type: 'pauseVideo' }) },
+  { pattern: /\bplay (the |my |this )?video\b/, build: () => ({ type: 'playVideo' }) },
   {
     pattern: /\bcancel (the )?(scene description|background description)\b/,
     build: () => ({ type: 'cancelScene' }),
@@ -114,6 +120,9 @@ export const COMMAND_HINTS = [
   'save video',
   'retake video',
   'post video',
+  'play video',
+  'pause video',
+  'restart video',
   'check lighting',
   'find light',
   'analyse my voice',

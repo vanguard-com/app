@@ -16,7 +16,7 @@ import { cues } from '@/cues';
 import { chooseTarget, previewBox, type Box, type Target } from '@/features/framing/model';
 import { posePointToFrame } from '@/features/feedback/pose';
 import { sampleLuma, type Point } from '@/features/lighting/sample';
-import { analyseLighting } from '@/features/lighting/model';
+import { analyseLighting, type LightingResult } from '@/features/lighting/model';
 import { strings } from '@/i18n';
 import {
   ObjectTracker,
@@ -54,6 +54,7 @@ export function useBackgroundCamera(
   size: { width: number; height: number },
   onFaces: (faces: FacePacket[]) => void,
   framing: boolean,
+  onLighting?: (result: LightingResult, at: number) => void,
 ) {
   const [resources, setResources] = useState<Awaited<
     ReturnType<typeof loadObjectResources>
@@ -62,9 +63,9 @@ export function useBackgroundCamera(
   const [objects, setObjects] = useState<TrackedObject[]>([]);
   const tracker = useRef(new ObjectTracker());
   const selected = useRef<Target | null>(null);
-  const latest = useRef({ active, size, onFaces, framing });
+  const latest = useRef({ active, size, onFaces, framing, onLighting });
   useLayoutEffect(() => {
-    latest.current = { active, size, onFaces, framing };
+    latest.current = { active, size, onFaces, framing, onLighting };
   });
   const enabled = useSharedValue(false),
     token = useSharedValue(0),
@@ -125,7 +126,7 @@ export function useBackgroundCamera(
       if (!latest.current.active || expected.current !== generation || Date.now() - at > 1500)
         return;
       if (latest.current.framing) latest.current.onFaces(faces);
-      if (detections === null) return;
+      if (detections === null && !grid.length) return;
       const view = camera.current;
       if (!view?.preview) return;
       const targets: Target[] = [];
@@ -140,6 +141,9 @@ export function useBackgroundCamera(
         }
       }
       selected.current = chooseTarget(targets, selected.current);
+      const light = analyseLighting(grid, 16, selected.current?.box ?? null);
+      latest.current.onLighting?.(light, at);
+      if (detections === null) return;
       const mapped: Detection[] = [];
       for (const d of detections) {
         try {
@@ -154,7 +158,6 @@ export function useBackgroundCamera(
       const next = tracker.current.update(mapped, at);
       setObjects(next);
       lastPacket.current = at;
-      const light = analyseLighting(grid, 16, selected.current?.box ?? null);
       const warnings = backgroundWarnings(
         next,
         selected.current?.box ?? null,

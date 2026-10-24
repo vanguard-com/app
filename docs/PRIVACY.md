@@ -18,12 +18,12 @@ explains what happens to your information when you use Lumi.
 
 ## What Lumi uses on your phone, and why
 
-| Permission         | What Lumi does with it                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------- |
-| Camera             | Shows and records video, and analyses frames on the phone to guide framing, lighting and background     |
-| Microphone         | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback |
-| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below                    |
-| Photo library      | Saves your videos to your photos, only when you choose Save                                             |
+| Permission         | What Lumi does with it                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Camera             | Shows and records video, and analyses frames on the phone to guide framing, lighting and background              |
+| Microphone         | Records sound with your video, and measures loudness, pace and tone on the phone to give voice feedback          |
+| Speech recognition | Listens for voice commands such as "start recording". See "Speech recognition" below                             |
+| Photo library      | Saves your videos to your photos, automatically after recording with add-only permission, or when you retry Save |
 
 You can turn any permission off in your phone's settings. Lumi tells you which features stop working.
 
@@ -40,10 +40,10 @@ to your Google account. Deleting Lumi deletes all of it except videos you saved 
 
 ## Speech recognition
 
-Lumi uses the speech recognition built into your phone for voice commands and for feedback on
-your speaking pace. Lumi asks for recognition on the phone whenever your phone supports it. When
-it does not, your phone sends your voice to Apple (iPhone) or Google (Android) to turn it into
-text. Apple or Google handles that audio under their own privacy policies:
+Lumi uses the speech recognition built into your phone for voice commands. Lumi asks for recognition
+on the phone whenever your phone supports it. When it does not, your phone may send live command
+audio to Apple (iPhone) or Google (Android) to turn it into text. Speaking pace from a saved recording
+uses only on-device recognition; it is unavailable when that cannot run locally. Apple or Google handles that audio under their own privacy policies:
 
 - Apple: https://www.apple.com/legal/privacy/
 - Google: https://policies.google.com/privacy
@@ -60,8 +60,8 @@ the request. By default downloads only happen on Wi Fi.
 
 ## Sharing
 
-When you choose Share, Lumi opens your phone's share sheet. The app you pick (for example YouTube
-or WhatsApp) receives the video under its own privacy policy. Lumi does not upload anything itself.
+When you choose Share or use the posting command on Review, Lumi opens your phone's share sheet. The app you pick (for example YouTube
+or WhatsApp) receives the locally saved video under its own privacy policy. Photos access is not required for this handoff. Lumi does not upload anything itself and cannot tell whether the receiving app posted the video. Command listening pauses during playback and while the share sheet is open.
 
 ## Children
 
@@ -84,7 +84,7 @@ When you request a light scan, Lumi uses motion sensors and a small camera lumin
 
 Feedback mode estimates head direction, smiles and posture entirely on the phone. Only summary measurements for the latest 20 recordings are kept in Lumi's local settings storage; camera frames, raw landmarks and pose data are not retained or uploaded. Retake removes that video's summary from Lumi.
 
-Optional Voice analysis in Review reads the saved video locally, without opening another microphone. Temporary audio chunks are removed after analysis, cancellation or failure. Loudness and pitch stay on the phone. Speaking pace uses only on-device speech recognition when supported; if it is unavailable, Lumi reports pace unavailable rather than sending recorded audio to a server. Transcripts are not saved. The existing Apple/Google speech-service fallback for live commands is unchanged. Aggregate measurements are not calibrated health measurements.
+Optional Voice analysis, reached through Review and playback, reads the saved video locally, without opening another microphone. Temporary audio chunks are removed after analysis, cancellation or failure. Loudness and pitch stay on the phone. Speaking pace uses only on-device speech recognition when supported; if it is unavailable, Lumi reports pace unavailable rather than sending recorded audio to a server. Transcripts are not saved. The existing Apple/Google speech-service fallback for live commands is unchanged. Aggregate measurements are not calibrated health measurements.
 
 ## Background recognition and scene descriptions
 

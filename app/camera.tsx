@@ -24,6 +24,9 @@ import {
   hasSpeechPermission,
 } from '@/features/permissions/permissions';
 import { useRecorder } from '@/features/recording/useRecorder';
+import { RecordingStats } from '@/features/recording/stats';
+import type { Box } from '@/features/framing/model';
+import type { LightingResult } from '@/features/lighting/model';
 import type { VoiceCommand } from '@/features/voice/commands';
 import { useVoiceCommands } from '@/features/voice/useVoiceCommands';
 import { useAppActive } from '@/hooks/useAppActive';
@@ -73,12 +76,22 @@ export default function CameraScreen() {
   const volumeButton = isHardwareButtonSupported();
   const debugOverlay = useSettings((s) => s.debugOverlay);
   const screenLive = isFocused && appActive;
+  const recordingStats = useRef(new RecordingStats());
+  const observeFraming = useCallback((box: Box | null, at: number) => {
+    if (useSession.getState().recordingPhase === 'recording')
+      recordingStats.current.sampleFraming(box, at);
+  }, []);
+  const observeLighting = useCallback((result: LightingResult, at: number) => {
+    if (useSession.getState().recordingPhase === 'recording')
+      recordingStats.current.sampleLighting(result, at);
+  }, []);
   const framing = useFraming(
     cameraRef,
     facing,
     screenLive && cameraAllowed && cameraReady && subject.kind === 'face' && mode === 'framing',
     previewSize,
     true,
+    observeFraming,
   );
   const background = useBackgroundCamera(
     cameraRef,
@@ -87,6 +100,7 @@ export default function CameraScreen() {
     previewSize,
     framing.receiveFaces,
     mode === 'framing',
+    observeLighting,
   );
   const scene = useSceneDescription(
     cameraRef,
@@ -130,6 +144,7 @@ export default function CameraScreen() {
     facing,
     scan.sample,
     !scan.running,
+    observeLighting,
   );
   const feedback = useFeedbackCamera(
     cameraRef,
@@ -233,6 +248,7 @@ export default function CameraScreen() {
 
   const recorder = useRecorder(micAllowed, {
     onStarted: () => {
+      recordingStats.current = new RecordingStats();
       feedback.beginStats();
       feedbackWanted.current =
         useSession.getState().mode === 'feedback' && useSettings.getState().liveFeedback;
@@ -245,8 +261,14 @@ export default function CameraScreen() {
         haptic: 'single',
       });
     },
-    onCaptured: (info) =>
-      feedbackWanted.current ? { ...info, feedbackSummary: feedback.finishStats() } : info,
+    onCaptured: (info) => ({
+      ...info,
+      recordingSummary: recordingStats.current.finish(
+        (useSession.getState().recordingStartedAt ?? Date.now() - info.durationMs) +
+          info.durationMs,
+      ),
+      ...(feedbackWanted.current ? { feedbackSummary: feedback.finishStats() } : {}),
+    }),
     onFinished: () => {
       cues.say({
         id: `sys.rec.stop.${Date.now()}`,
@@ -453,10 +475,25 @@ export default function CameraScreen() {
           beginScan();
           return;
         case 'help':
-          cues.say({ id: 'sys.help', category: 'system', text: strings.voice.help, force: true });
+          cues.say({
+            id: 'sys.help',
+            category: 'system',
+            text: strings.voice.help.camera,
+            force: true,
+          });
+          return;
+        case 'postVideo':
+        case 'saveVideo':
+        case 'playVideo':
+          cues.say({
+            id: 'sys.reviewOnly',
+            category: 'system',
+            text: strings.voice.reviewOnly,
+            force: true,
+          });
           return;
         default:
-          cues.say({ id: 'sys.notYet', category: 'system', text: strings.voice.notYet });
+          cues.say({ id: 'sys.cameraOnly', category: 'system', text: strings.voice.cameraOnly });
       }
     },
     [

@@ -31,12 +31,16 @@ jest.mock('react-native-audio-api', () => {
 
 jest.mock('react-native-vision-camera', () => {
   const { View } = require('react-native');
+  const React = require('react');
   const output = { createRecorder: jest.fn() };
   const frameOutput = {};
   return {
-    Camera: (props: object) => <View testID="vision-camera" {...props} />,
+    Camera: React.forwardRef(function CameraMock(props: object, ref: unknown) {
+      React.useImperativeHandle(ref, () => ({ cancelZoomAnimation: jest.fn() }));
+      return <View testID="vision-camera" {...props} />;
+    }),
     CommonResolutions: { FHD_16_9: { width: 1920, height: 1080 } },
-    useVideoOutput: () => output,
+    useVideoOutput: jest.fn(() => output),
     useFrameOutput: jest.fn(() => frameOutput),
     useCameraDevice: () => ({ id: 'mock-camera', minZoom: 1, maxZoom: 3 }),
     VisionCamera: {
@@ -136,3 +140,40 @@ jest.mock('expo-device', () => ({
   modelName: 'Test phone',
 }));
 jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
+
+jest.mock('expo-sharing', () => ({
+  isAvailableAsync: jest.fn(async () => true),
+  shareAsync: jest.fn(async () => {}),
+}));
+
+jest.mock('expo-video', () => ({
+  VideoView: (props: object) => {
+    const { View } = require('react-native');
+    return <View {...props} />;
+  },
+  useVideoPlayer: jest.fn((source, setup) => {
+    const { useMemo } = require('react');
+    return useMemo(() => {
+      const listeners = new Map<string, Set<(payload: unknown) => void>>();
+      const emit = (name: string, payload?: unknown) =>
+        listeners.get(name)?.forEach((cb) => cb(payload));
+      const player = {
+        currentTime: 0,
+        duration: 10,
+        status: 'readyToPlay',
+        play: jest.fn(() => emit('playingChange', { isPlaying: true })),
+        pause: jest.fn(() => emit('playingChange', { isPlaying: false })),
+        addListener: (name: string, cb: (payload: unknown) => void) => {
+          if (!listeners.has(name)) listeners.set(name, new Set());
+          listeners.get(name)!.add(cb);
+          return { remove: () => listeners.get(name)?.delete(cb) };
+        },
+        emit,
+      };
+      setup?.(player);
+      return player;
+      // Match expo-video: setup applies only when a source creates a new native player.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [source]);
+  }),
+}));

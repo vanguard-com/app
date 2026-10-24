@@ -28,12 +28,13 @@ export function useLighting(
   facing: string,
   onBrightness: (brightness: number, now: number) => void,
   guidance: boolean,
+  onObservation?: (result: LightingResult, at: number) => void,
 ) {
   const [result, setResult] = useState<LightingResult>(EMPTY_LIGHTING);
   const tracker = useRef(new LightingTracker());
-  const latest = useRef({ active, size, onBrightness });
+  const latest = useRef({ active, size, onBrightness, onObservation });
   useLayoutEffect(() => {
-    latest.current = { active, size, onBrightness };
+    latest.current = { active, size, onBrightness, onObservation };
   });
   const mapping = useSharedValue<Point[] | null>(null);
   const lastFrame = useSharedValue(0);
@@ -88,6 +89,7 @@ export function useLighting(
       } else if (at - seenAt.current >= 1000) target.current = null;
       // Never reuse an old face against pixels from a different frame.
       const next = analyseLighting(grid, LIGHTING.gridSize, selected?.box ?? null);
+      latest.current.onObservation?.(next, at);
       setResult(tracker.current.update(next, at));
       if (next.state !== 'unavailable') latest.current.onBrightness(next.overall, at);
     },

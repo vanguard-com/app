@@ -15,9 +15,14 @@ iOS 16.4+ and Android 10+ from one Expo / React Native codebase.
 | 3     | Lighting check, scan mode                                     | Implemented, needs phone check                          |
 | 4     | Live feedback                                                 | Implemented, native builds passed; phone checks pending |
 | 5     | Background recognition, scene description                     | Implemented; phone validation pending                   |
-| 6     | Review, sharing, voice commands                               |                                                         |
+| 6     | Review, sharing, voice commands                               | Implemented; native and phone validation pending        |
 | 7     | Onboarding, settings polish, accessibility audit, performance |                                                         |
 | 8     | Store readiness                                               |                                                         |
+
+Phase 6 adds Review's Play, Retake, Save and Share actions. Play includes optional recorded-voice
+analysis after pausing. Share (or “post video” on Review) opens the phone's share sheet for the
+saved local video; finish posting in the app you choose. Photos access is optional for sharing.
+See [Phase 6 behavior and phone checks](docs/PHASE_6.md).
 
 ## Requirements
 
