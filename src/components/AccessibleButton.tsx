@@ -20,6 +20,8 @@ export interface AccessibleButtonProps {
   /** Decorative glyph shown before the text. Hidden from screen readers. */
   icon?: string;
   variant?: 'primary' | 'secondary';
+  /** Align a destination row to the leading edge and show its navigation affordance. */
+  navigation?: boolean;
   role?: AccessibilityRole;
   selected?: boolean;
   disabled?: boolean;
@@ -37,6 +39,7 @@ export function AccessibleButton({
   text,
   icon,
   variant = 'secondary',
+  navigation = false,
   role = 'button',
   selected,
   disabled,
@@ -70,15 +73,11 @@ export function AccessibleButton({
           minWidth: layout.minTouchTarget,
           minHeight: layout.minTouchTarget,
           borderRadius: layout.cornerRadius,
-          borderWidth:
-            pressed || selected || focused ? layout.focusRingWidth : layout.buttonBorderWidth,
+          borderWidth: focused ? layout.focusRingWidth : layout.buttonBorderWidth,
           backgroundColor: palette.background,
-          borderColor: focused
-            ? palette.text
-            : pressed || selected
-              ? colors.accent
-              : palette.border,
+          borderColor: focused || pressed || selected ? colors.accent : palette.border,
           borderStyle: disabled ? 'dashed' : 'solid',
+          transform: [{ scale: pressed ? 0.98 : 1 }],
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
           // Stacked buttons on normal screens need a visible gap. Camera controls (scheme set) are
@@ -88,10 +87,20 @@ export function AccessibleButton({
         style,
       ]}
     >
-      <View style={styles.row} importantForAccessibility="no-hide-descendants">
+      <View
+        style={[styles.row, navigation && { width: '100%' }]}
+        importantForAccessibility="no-hide-descendants"
+      >
         {icon ? (
           <Text
-            style={[typography.heading, { color: palette.text }]}
+            style={[
+              typography.heading,
+              {
+                color: variant === 'primary' ? palette.text : colors.accent,
+                minWidth: navigation ? 28 : undefined,
+                textAlign: 'center',
+              },
+            ]}
             accessibilityElementsHidden
             importantForAccessibility="no"
           >
@@ -106,11 +115,20 @@ export function AccessibleButton({
                 color: palette.text,
                 marginLeft: icon ? spacing.sm : 0,
                 flexShrink: 1,
-                textAlign: 'center',
+                flex: navigation ? 1 : undefined,
+                textAlign: navigation ? 'left' : 'center',
               },
             ]}
           >
             {text ?? label}
+          </Text>
+        ) : null}
+        {selected ? (
+          <Text style={[typography.label, { color: palette.text, marginLeft: spacing.sm }]}>✓</Text>
+        ) : null}
+        {navigation ? (
+          <Text style={[typography.heading, { color: palette.text, marginLeft: spacing.sm }]}>
+            ›
           </Text>
         ) : null}
       </View>

@@ -43,6 +43,7 @@ export default function PermissionSettings() {
       </Text>
       {PERMISSION_KINDS.map((kind) => (
         <AccessibleButton
+          navigation
           key={kind}
           label={t.item(
             t.names[kind],

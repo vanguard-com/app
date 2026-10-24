@@ -1,6 +1,6 @@
 """Generate Lumi app icon, adaptive icon layers, splash and favicon.
 
-Uses the theme tokens `accent` (#FFC83D) on `background` (#0B0B0F).
+Uses the theme tokens `accent` (#568BFF) on `background` (#050B14).
 Run: python3 scripts/generate-icons.py  (needs Pillow)
 """
 
@@ -8,8 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-BACKGROUND = (0x0B, 0x0B, 0x0F, 255)
-ACCENT = (0xFF, 0xC8, 0x3D, 255)
+BACKGROUND = (0x05, 0x0B, 0x14, 255)
+ACCENT = (0x56, 0x8B, 0xFF, 255)
 WHITE = (255, 255, 255, 255)
 CLEAR = (0, 0, 0, 0)
 SCALE = 4  # supersampling for smooth edges

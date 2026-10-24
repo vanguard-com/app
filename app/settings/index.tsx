@@ -5,11 +5,11 @@ import { strings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 // Max 4 controls per screen, so settings are split into 4 groups.
-const GROUPS: { key: keyof typeof strings.settings.groups; href: Href }[] = [
-  { key: 'sound', href: '/settings/sound' },
-  { key: 'feedback', href: '/settings/feedback' },
-  { key: 'camera', href: '/settings/recording' },
-  { key: 'more', href: '/settings/more' },
+const GROUPS: { key: keyof typeof strings.settings.groups; href: Href; icon: string }[] = [
+  { key: 'sound', href: '/settings/sound', icon: '♫' },
+  { key: 'feedback', href: '/settings/feedback', icon: '◉' },
+  { key: 'camera', href: '/settings/recording', icon: '▣' },
+  { key: 'more', href: '/settings/more', icon: '•••' },
 ];
 
 export default function SettingsHome() {
@@ -19,8 +19,10 @@ export default function SettingsHome() {
   return (
     <Screen>
       <ScreenHeader title={t.title} />
-      {GROUPS.map(({ key, href }) => (
+      {GROUPS.map(({ key, href, icon }) => (
         <AccessibleButton
+          navigation
+          icon={icon}
           key={key}
           label={t.groups[key].label}
           hint={t.groups[key].hint}

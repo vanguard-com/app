@@ -46,7 +46,7 @@ export function ToggleRow({ label, value, onChange, hint, testID }: ToggleRowPro
           borderRadius: layout.cornerRadius,
           backgroundColor: colors.surface,
           borderColor: pressed || focused ? colors.accent : colors.secondaryButton.border,
-          borderWidth: pressed || focused ? layout.focusRingWidth : layout.buttonBorderWidth,
+          borderWidth: focused ? layout.focusRingWidth : layout.buttonBorderWidth,
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
           marginBottom: spacing.md,
@@ -66,20 +66,35 @@ export function ToggleRow({ label, value, onChange, hint, testID }: ToggleRowPro
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
         style={[
-          styles.pill,
-          {
-            borderColor: value ? colors.good : colors.textSecondary,
-            borderStyle: value ? 'solid' : 'dashed',
-            borderWidth: layout.buttonBorderWidth,
-            borderRadius: layout.cornerRadius,
-            paddingHorizontal: spacing.sm,
-            alignSelf: stacked ? 'flex-start' : 'center',
-          },
+          styles.state,
+          { marginLeft: stacked ? 0 : spacing.md, marginTop: stacked ? spacing.sm : 0 },
         ]}
       >
-        <Text style={[typography.label, { color: colors.textPrimary }]}>
-          {value ? `✓ ${stateText}` : stateText}
+        <Text style={[typography.label, { color: colors.textSecondary, marginRight: spacing.sm }]}>
+          {stateText}
         </Text>
+        <View
+          style={[
+            styles.track,
+            {
+              backgroundColor: value ? colors.primaryButton.background : colors.background,
+              borderColor: value ? colors.accent : colors.secondaryButton.border,
+              borderWidth: layout.buttonBorderWidth,
+              alignItems: value ? 'flex-end' : 'flex-start',
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.thumb,
+              { backgroundColor: value ? colors.primaryButton.text : colors.textSecondary },
+            ]}
+          >
+            {value ? (
+              <Text style={[styles.check, { color: colors.primaryButton.background }]}>✓</Text>
+            ) : null}
+          </View>
+        </View>
       </View>
     </Pressable>
   );
@@ -92,5 +107,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   label: { flex: 1, flexWrap: 'wrap' },
-  pill: { minWidth: 72, alignItems: 'center' },
+  state: { flexDirection: 'row', alignItems: 'center' },
+  track: { width: 56, height: 32, borderRadius: 16, padding: 3, justifyContent: 'center' },
+  thumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  check: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
 });

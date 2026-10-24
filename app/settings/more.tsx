@@ -12,12 +12,14 @@ export default function MoreSettings() {
     <Screen>
       <ScreenHeader title={t.groups.more.label} />
       <AccessibleButton
+        navigation
         label={strings.background.models.label}
         hint={strings.background.models.hint}
         onPress={() => router.push('/settings/models')}
         style={{ marginBottom: spacing.md }}
       />
       <AccessibleButton
+        navigation
         label={t.replayTutorial.label}
         hint={t.replayTutorial.hint}
         onPress={() => router.push({ pathname: '/welcome', params: { replay: '1' } })}
@@ -25,12 +27,14 @@ export default function MoreSettings() {
         testID="setting-replay-tutorial"
       />
       <AccessibleButton
+        navigation
         label={strings.permissions.title}
         hint={strings.permissions.detailHint}
         onPress={() => router.push('/settings/permissions')}
         testID="setting-permissions"
       />
       <AccessibleButton
+        navigation
         label={strings.background.information.label}
         hint={strings.background.information.hint}
         onPress={() => router.push('/settings/information')}

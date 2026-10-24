@@ -1,4 +1,11 @@
-import { Pressable, StyleSheet, Text, type AccessibilityActionEvent } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+  type AccessibilityActionEvent,
+} from 'react-native';
 import { useState } from 'react';
 import { useSettingFeedback } from './useSettingFeedback';
 
@@ -26,6 +33,7 @@ export function AdjustableRow({
   testID,
 }: AdjustableRowProps) {
   const { colors, typography, layout, spacing } = useTheme();
+  const stacked = useWindowDimensions().fontScale > 1.6;
   const [focused, setFocused] = useState(false);
   const feedback = useSettingFeedback(label, valueText);
   const increment = () => {
@@ -65,20 +73,42 @@ export function AdjustableRow({
       style={({ pressed }) => [
         styles.row,
         {
+          flexDirection: stacked ? 'column' : 'row',
+          alignItems: stacked ? 'stretch' : 'center',
           minHeight: layout.minTouchTarget,
           minWidth: layout.minTouchTarget,
           borderRadius: layout.cornerRadius,
           backgroundColor: colors.surface,
           borderColor: pressed || focused ? colors.accent : colors.secondaryButton.border,
-          borderWidth: pressed || focused ? layout.focusRingWidth : layout.buttonBorderWidth,
+          borderWidth: focused ? layout.focusRingWidth : layout.buttonBorderWidth,
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
           marginBottom: spacing.md,
         },
       ]}
     >
-      <Text style={[typography.label, { color: colors.textPrimary }]}>{label}</Text>
-      <Text style={[typography.body, { color: colors.textSecondary }]}>{valueText}</Text>
+      <Text style={[typography.label, { color: colors.textPrimary, flex: stacked ? 0 : 1 }]}>
+        {label}
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          flexShrink: 1,
+          marginLeft: stacked ? 0 : spacing.md,
+        }}
+      >
+        <Text style={[typography.body, { color: colors.textSecondary, flexShrink: 1 }]}>
+          {valueText}
+        </Text>
+        <Text
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+          style={[typography.heading, { color: colors.accent, marginLeft: spacing.sm }]}
+        >
+          ↕
+        </Text>
+      </View>
     </Pressable>
   );
 }
