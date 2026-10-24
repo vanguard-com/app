@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { FeedbackSummary } from '@/features/feedback/stats';
 import type { VoiceSummary } from '@/features/feedback/recordedVoice';
+import type { RecordingSummary } from '@/features/recording/stats';
 import { useRecordingHistory } from './recordingHistory';
 
 export type GuidanceMode = 'framing' | 'lighting' | 'feedback' | 'background';
@@ -29,6 +30,7 @@ export interface RecordingInfo {
   autoSaveResult?: 'saved' | 'denied' | 'failed';
   feedbackSummary?: FeedbackSummary;
   voiceSummary?: VoiceSummary;
+  recordingSummary?: RecordingSummary;
 }
 
 interface SessionState {

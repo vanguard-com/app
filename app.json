@@ -114,7 +114,9 @@
           "cameraPermission": "Lumi uses the camera to record video and guide framing and lighting.",
           "microphonePermission": "Lumi records sound with your video and gives feedback on your voice."
         }
-      ]
+      ],
+      "expo-video",
+      "expo-sharing"
     ]
   }
 }

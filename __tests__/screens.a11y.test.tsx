@@ -18,6 +18,7 @@ const SCREENS: { url: string; maxControls: number; minControls?: number }[] = [
   { url: '/camera', maxControls: 6 },
   { url: '/subject', maxControls: 4 },
   { url: '/review', maxControls: 4 },
+  { url: '/playback', maxControls: 4 },
   { url: '/settings', maxControls: 4 },
   { url: '/settings/sound', maxControls: 4 },
   { url: '/settings/feedback', maxControls: 4 },
@@ -41,6 +42,15 @@ describe.each(SCREENS)('$url', ({ url, maxControls, minControls = 1 }) => {
   beforeEach(async () => {
     useSettings.getState().reset();
     useSettings.getState().update({ onboardingComplete: true });
+    const session = useSession.getState();
+    session.setLastRecording({
+      uri: 'file:///recording.mp4',
+      durationMs: 10000,
+      hasAudio: true,
+      savedToPhotos: true,
+    });
+    if (url === '/playback' || url === '/review')
+      useSettings.getState().update({ liveFeedback: true });
     pathname = renderRouter('./app', { initialUrl: url }).getPathname();
     // Let async permission checks settle so state updates happen inside act().
     await act(async () => {});
